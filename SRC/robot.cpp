@@ -34,6 +34,8 @@ int main(int argc, char *argv[])
 
 		pp.SetSpeed(speed, turnrate);
 
+        pp.GoTo(5,0,0);
+
 	}
 }
 
