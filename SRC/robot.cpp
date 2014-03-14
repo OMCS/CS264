@@ -8,33 +8,13 @@
 using namespace PlayerCc;
 
 
-    // FIXME: Get these on stdin
-    int endX = 8;
-    int endY = 8;
+// FIXME: Get these on stdin
+int endX = 8;
+int endY = 8;
     
-    Grid occupancyGrid;
+Grid occupancyGrid;
 
-int main(int argc, char *argv[])
-{
-	PlayerClient    robot("localhost");
-	RangerProxy      sp(&robot,0);
-	Position2dProxy pp(&robot,0);
-
-	pp.SetMotorEnable(true);
-
-    pp.SetSpeed(0.200,30);
-    
-    int startXPos = pp.GetXPos();
-    int startYPos = pp.GetYPos();
-
-    bool atGoal = false;
-
-	while(!atGoal)
-	{
-        // TODO: Populate this
-	} 
-}
-
+// TODO: Come up with successor function
 void BFS()
 {
 
@@ -74,5 +54,29 @@ std::pair<int,int> getRobotPos()
 	}
 	
 	return robotPos;
+}
+
+int main(int argc, char *argv[])
+{
+	PlayerClient    robot("localhost");
+	RangerProxy      sp(&robot,0);
+	Position2dProxy pp(&robot,0);
+
+	pp.SetMotorEnable(true);
+
+    pp.SetSpeed(0.200,30);
+    
+    bool atGoal = false;
+
+	while(!atGoal)
+	{
+        // TODO: Populate this
+
+        if (isGoal(pp.GetXPos(), pp.GetYPos()))
+        {
+            atGoal = true;
+            break;
+        } 
+	} 
 }
 
