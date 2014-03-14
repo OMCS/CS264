@@ -7,51 +7,33 @@
 
 using namespace PlayerCc;
 
-
-// FIXME: Get these on stdin
-int endX = 8;
-int endY = 8;
-    
 Grid occupancyGrid;
 
-// TODO: Come up with successor function
-void BFS()
+int goalX, goalY;
+
+/* TODO: Come up with successor function and complete this */
+player_pose2d_t BFS()
 {
+    std::queue<Grid> frontier;
+    std::vector<Grid> visited; 
 
-std::queue<Grid> frontier;
-std::vector<Grid> visited; 
+    player_pose2d_t newPos;
 
+    // FIXME: This should be the next section of the path
+    newPos.px = goalX;
+    newPos.py = goalY;
+
+    return newPos;
 }
 
-bool isGoal(int curXPos, int curYPos)
+bool isGoal(int curXPos, int curYPos) // Cast to int 
 {
-	if(curXPos == endX && curYPos == endY)
+	if(curXPos == goalX && curYPos == goalY)
 	{
 		return true;
 	}
 	
 	return false;			
-}
-
-std::pair<int,int> getRobotPos()
-{
-	std::pair<int,int> robotPos;
-	
-	for(int posX = 0; posX < 20; posX++)
-	{
-		for(int posY = 0; posY < 20; posY++)
-		{
-            std::vector< std::vector <int> > contents = occupancyGrid.getContents();
-			
-			if(contents[posX][posY] == 2)
-			{
-				robotPos.first = posX;
-				robotPos.second = posY;
-			}
-		}
-	}
-	
-	return robotPos;
 }
 
 int main(int argc, char *argv[])
@@ -60,21 +42,34 @@ int main(int argc, char *argv[])
 	RangerProxy      sp(&robot,0);
 	Position2dProxy pp(&robot,0);
 
+    std::cout << "Goal Position (X): ";
+    std::cin >> goalX;
+    std::cout << "Goal Position (Y): ";
+    std::cin >> goalY;
+
 	pp.SetMotorEnable(true);
 
     pp.SetSpeed(0.200,30);
     
     bool atGoal = false;
 
+    /* TODO: Finish this loop */
 	while(!atGoal)
 	{
-        // TODO: Populate this
+        robot.Read(); // Update position data
+        
+        player_pose2d_t newPos = BFS();
+
+        pp.GoTo(newPos);
 
         if (isGoal(pp.GetXPos(), pp.GetYPos()))
         {
             atGoal = true;
+            std::cout << "Goal reached!" << std::endl;
             break;
         } 
 	} 
+
+    return(0);
 }
 
