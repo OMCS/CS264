@@ -1,41 +1,78 @@
 #include <iostream>
 #include <libplayerc++/playerc++.h>
+#include <utility>
+#include <vector>
+#include <queue>
+#include "grid.h"
+
+using namespace PlayerCc;
+
+
+    // FIXME: Get these on stdin
+    int endX = 8;
+    int endY = 8;
+    
+    Grid occupancyGrid;
 
 int main(int argc, char *argv[])
 {
-    using namespace PlayerCc;
-
 	PlayerClient    robot("localhost");
 	RangerProxy      sp(&robot,0);
 	Position2dProxy pp(&robot,0);
 
 	pp.SetMotorEnable(true);
 
-    double speed, turnrate;
+    pp.SetSpeed(0.200,30);
+    
+    int startXPos = pp.GetXPos();
+    int startYPos = pp.GetYPos();
 
-	for(;;)
+    bool atGoal = false;
+
+	while(!atGoal)
 	{
-		//  Read from the proxies
-		robot.Read();
+        // TODO: Populate this
+	} 
+}
 
-		//         print out sonars for fun
-		std::cout << sp << std::endl;
+void BFS()
+{
 
-		//             do simple collision avoidance
-		if((sp[0] + sp[1]) < (sp[6] + sp[7]))
-			turnrate = dtor(-20); // turn 20 degrees per second
-		else
-			turnrate = dtor(20);
+std::queue<Grid> frontier;
+std::vector<Grid> visited; 
 
-		if(sp[3] < 0.500)
-			speed = 0;
-		else
-			speed = 0.100;
+}
 
-		pp.SetSpeed(speed, turnrate);
-
-        pp.GoTo(9,4,0);
-
+bool isGoal(int curXPos, int curYPos)
+{
+	if(curXPos == endX && curYPos == endY)
+	{
+		return true;
 	}
+	
+	return false;			
+}
+
+std::pair<int,int> getRobotPos()
+{
+	std::pair<int,int> robotPos;
+	
+	int posX, posY;
+	
+	for(int posX = 0; posX < 20; posX++)
+	{
+		for(int posY = 0; posY < 20; posY++)
+		{
+            std::vector< std::vector <int> > contents = occupancyGrid.getContents();
+			
+			if(contents[posX][posY] == 2)
+			{
+				robotPos.first = posX;
+				robotPos.second = posY;
+			}
+		}
+	}
+	
+	return robotPos;
 }
 
