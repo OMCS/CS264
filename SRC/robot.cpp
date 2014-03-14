@@ -37,8 +37,6 @@ std::pair<int,int> getRobotPos()
 {
 	std::pair<int,int> robotPos;
 	
-	int posX, posY;
-	
 	for(int posX = 0; posX < 20; posX++)
 	{
 		for(int posY = 0; posY < 20; posY++)
