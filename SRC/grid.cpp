@@ -1,26 +1,6 @@
 #include <vector>
 #include <iostream>
-
-class Grid {
-
-	private:
-        std::vector <std::vector <int> > gridContents;
-	public:
-        Grid();
-        std::vector <std::vector <int> > getContents();
-		void setGrid(std::vector <std::vector <int> > newGrid);
-        void printGrid();
-        int getSize();
-        bool isObstacle(int theRow, int theCol);
-        bool canMoveUp(int curRow, int curCol);
-        bool canMoveDown(int curRow, int curCol);
-
-        // Constructor to specify contents of a new grid
-        Grid(std::vector <std::vector <int> > newGrid)
-        {
-           gridContents = newGrid; 
-        }
-};
+#include "grid.h"
 
 Grid::Grid()
 {
@@ -50,6 +30,12 @@ Grid::Grid()
     };
 
     gridContents = defaultValues;
+}
+
+// Constructor to specify contents of a new grid
+Grid::Grid(std::vector <std::vector <int> > newGrid)
+{
+   gridContents = newGrid; 
 }
 
 std::vector <std::vector <int> > Grid::getContents()
