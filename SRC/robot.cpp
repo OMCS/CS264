@@ -2,6 +2,7 @@
 #include <libplayerc++/playerc++.h>
 #include <vector>
 #include <queue>
+#include <cmath>
 #include "grid.h"
 
 using namespace PlayerCc;
@@ -25,12 +26,10 @@ player_pose2d_t BFS()
     return newPos;
 }
 
-// FIXME: This function isn't working reliably
 bool isGoal(double curXPos, double curYPos) 
 {
-	if(curXPos - goalX < 0.5 && curYPos - goalY < 0.5)
+	if(std::abs(curXPos - goalX) < 0.05 && std::abs(curYPos - goalY) < 0.05)
 	{
-        std::cout << goalX << "-" << curXPos << std::endl; // XXX: Debug code
 		return true;
 	}
 
@@ -43,7 +42,7 @@ int main(int argc, char *argv[])
 	RangerProxy      sp(&robot,0);
 	Position2dProxy pp(&robot,0);
 
-    //occupancyGrid.printGrid();
+    pp.SetMotorEnable(false);
     
     robot.Read();
 
@@ -72,11 +71,6 @@ int main(int argc, char *argv[])
             atGoal = true;
             std::cout << "Goal reached!" << std::endl;
         } 
-
-        else
-        {
-            std::cout << pp.GetXPos() << "," << pp.GetYPos() << std::endl;
-        }
 	} 
 
     return(0);
