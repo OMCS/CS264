@@ -12,10 +12,9 @@ class Grid
         Grid(std::vector <std::vector <int> > newGrid);
         std::vector < std::vector <int> > getContents();
 		void setGrid(std::vector <std::vector <int> > newGrid);
-        void printGrid();
         int getSize();
-        bool isObstacle(int theRow, int theCol);
-        bool canMoveUp(int curRow, int curCol);
-        bool canMoveDown(int curRow, int curCol);
+        std::pair<int,int> mapToGridArray(int xPos, int yPos);
+        bool isObstacle(int xPos, int yPos); 
+        void printGrid();
 };
 

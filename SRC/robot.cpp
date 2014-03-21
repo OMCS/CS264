@@ -3,8 +3,8 @@
 #include <vector>
 #include <queue>
 #include <cmath>
-#include "grid.h"
 #include <unistd.h>
+#include "grid.h"
 
 using namespace PlayerCc;
 
@@ -12,7 +12,7 @@ Grid occupancyGrid;
 
 double goalX, goalY;
 
-/* TODO: Come up with successor function and complete this */
+/* XXX: To be completed in the future when using deliberative path-finding */
 player_pose2d_t BFS()
 {
     std::queue<Grid> frontier;
@@ -20,16 +20,21 @@ player_pose2d_t BFS()
 
     player_pose2d_t newPos;
 
-    // FIXME: This should be the next section of the path
+    // XXX: This should be the next section of the path
     newPos.px = goalX;
     newPos.py = goalY;
 
     return newPos;
 }
 
+double distanceFromGoal(double curXPos, double curYPos)
+{
+    return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);
+}
+
 bool isGoal(double curXPos, double curYPos) 
 {
-	if(std::abs(curXPos - goalX) < 0.15 && std::abs(curYPos - goalY) < 0.15)
+    if (distanceFromGoal(curXPos, curYPos) < 0.10) // If combined distance from goal is a negligible value
     {
 		return true;
 	}
@@ -49,49 +54,74 @@ int main(int argc, char *argv[])
     
     robot.Read();
 
-    std::cout << "Goal Position (X): ";
-    std::cin >> goalX;
-    std::cout << "Goal Position (Y): ";
-    std::cin >> goalY;
+    bool validInput = false;
+
+    while (!validInput)
+    {
+        std::cout << "Goal Position (X): ";
+        std::cin >> goalX;
+        if (goalX < -10 || goalX > 9)
+        {
+            std::cerr << "\nInvalid goal position. Must be on grid\n\n";
+            continue;
+        }
+
+        std::cout << "Goal Position (Y): ";
+        std::cin >> goalY;
+
+        if (goalY < -9 || goalY > 9 || occupancyGrid.isObstacle(goalX, goalY))
+        {
+            std::cerr << "\nInvalid goal position. Must be on grid and not an obstacle\n\n";
+            continue;
+        }
+
+        validInput = true;
+    }
 
 	pp.SetMotorEnable(true);
 
     bool atGoal = false;
     player_pose2d_t newPos = BFS();
 
-   /* TODO: Finish this loop */
+    /* The main loop that while continue until the robot has reached its destination */
 	while(!atGoal)
 	{
         robot.Read(); // Update position data
 
         if ( (sp[0] + sp[1] + sp[2]) < (sp[5] + sp[6] + sp[7]) ) 
-        //if ( (sp[0] + sp[1] ) < (sp[5] + sp[6]) ) 
         {
-			turnrate = dtor(-60); // Experimental Turn rates
+			turnrate = dtor(-60); // Turn rates decided after experimentation
 		} 
 
         else 
         {
-			turnrate = dtor(30);
+			turnrate = dtor(40);
 		}
 
-		if (sp[3] < 0.6 || sp[4] < 0.6) 
+		if (sp[3] < 0.5 || sp[4] < 0.5) 
         {
 			pp.SetSpeed(-0.700, turnrate); // Move backwards
+            usleep(200000); // Move backwards for 200ms to get a sufficient distance from obstacles
 		}
 
         else 
         {
-            pp.SetSpeed(0.300, turnrate);
+            pp.SetSpeed(0.300, turnrate); // Standard speed and turn rate
         }
 
-        usleep(150000);
+        usleep(150000); // Continue obstacle avoidance behaviour for 150ms
 
-        pp.GoTo(newPos);
+        pp.GoTo(newPos); // Seek goal position
 
-        usleep(100000);
+        if (distanceFromGoal(pp.GetXPos(), pp.GetYPos()) < 0.30) // Combined distance from goal
+        {
+            usleep(200000); // Seek goal position for 200ms (makes movement around goal more accurate)
+        }
 
-        //pp.SetSpeed(speed, turnrate);
+        else
+        {
+            usleep(120000); // Continue seeking goal position for 120ms
+        }
 
         if (isGoal(pp.GetXPos(), pp.GetYPos()))
         {

@@ -4,7 +4,10 @@
 
 Grid::Grid()
 {
-    // Set the initial gridContents vector to the hard-coded values
+    /* Set the initial gridContents vector to the hard-coded values
+     * y = -1, x = 5 is equivalent to gridContents[10][16]
+     * Access is [row][col] 
+     */
     std::vector <std::vector <int> > defaultValues = 
     {
         {0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,2},
@@ -32,7 +35,7 @@ Grid::Grid()
     gridContents = defaultValues;
 }
 
-// Constructor to specify contents of a new grid
+/* Constructor to specify contents of a new grid */
 Grid::Grid(std::vector <std::vector <int> > newGrid)
 {
    gridContents = newGrid; 
@@ -48,10 +51,36 @@ void Grid::setGrid(std::vector <std::vector <int> > newGrid)
     gridContents = newGrid;
 }
 
-// Returns number of rows, to find true size multiply by two
+/* Returns number of rows, to find number of cells multiply by two */
 int Grid::getSize()
 {
     return gridContents.size(); 
+}
+
+/* This function maps coordinates of the form x,y to row,column
+ * this is used for manipulating the internal array representation of the world 
+ * e.g. to detect if a given goal position contains an obstacle
+ */
+std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
+{
+    std::pair<int,int> arrayPosition;
+
+    arrayPosition.first = 9 - yPos ; // The row
+    arrayPosition.second = 10 + xPos; // The column
+
+    return arrayPosition; // Returns the 2D vector indices of the given x,y coordinate
+}
+
+bool Grid::isObstacle(int xPos, int yPos)
+{
+    std::pair<int,int> gridCell = mapToGridArray(xPos, yPos);
+
+    if (gridContents[gridCell.first][gridCell.second] == 1)
+    {
+        return true;
+    }
+
+    return false;
 }
 
 void Grid::printGrid()
@@ -69,38 +98,5 @@ void Grid::printGrid()
             std::cout << gridContents[i][j];
         }
     }
-}
-
-/* TODO: Test booleans before continuing */
-bool Grid::canMoveUp(int curRow, int curCol)
-{
-    // If move is off the Grid
-    if (curRow > 10 || curRow < -10 || curCol > 10 || curCol < -10)
-    {
-        return false;
-    }
-
-    else if (gridContents[curRow + 11][curCol +10] == 1) // Obstacles
-    {
-        return false;
-    }
-
-    return true;
-}
-
-bool Grid::canMoveDown(int curRow, int curCol)
-{
-    // If move is off the Grid
-    if (curRow > 10 || curRow < -10 || curCol > 10 || curCol < -10)
-    {
-        return false;
-    }
-
-    else if (gridContents[curRow + 9][curCol + 10] == 1) // Obstacles
-    {
-        return false;
-    }
-
-    return true;
 }
 
