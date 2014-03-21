@@ -1,0 +1,95 @@
+\documentclass[a4paper,12pt]{article}
+
+\usepackage[margin=0.8in]{geometry} % Sets a 0.8 inch margin on all four sides 
+\usepackage{parskip} % Block Paragraphs
+\usepackage{fancyhdr} % Fancy headers and footers
+\usepackage{graphicx} % Enables images
+\usepackage{pdfpages} % Embedded PDF files
+\usepackage{caption} % Enables captions
+\usepackage{framed} % Enables frames
+\usepackage{verbatim} % Enables insertion of text files
+\usepackage{amsfonts} % Fonts for sets
+\usepackage{wrapfig} % Wrapped figures
+\usepackage{algorithm2e} % Algorithms
+\usepackage{verbatim} % Embed text files
+\usepackage[colorlinks=true,urlcolor=blue,linkcolor=blue,linktocpage=true]{hyperref} % Hypertext referencing
+
+\usepackage{enumitem}
+\newlist{arrowlist}{itemize}{1}
+\setlist[arrowlist]{label=$\Rightarrow$} % Use command \begin {arrowlist} rather than \begin{itemize} for arrows
+
+\usepackage{color} % Enables colours
+\definecolor{darkpurple}{rgb}{0.4, 0.0, 0.4} % Defines a dark purple colour
+\definecolor{javared}{rgb}{0.6,0,0} % for strings
+\definecolor{javagreen}{rgb}{0.25,0.5,0.35} % comments
+\definecolor{javapurple}{rgb}{0.5,0,0.35} % keywords
+\definecolor{javadocblue}{rgb}{0.25,0.35,0.75} % javadoc
+
+\pagestyle{fancy} % Set new page style
+\frenchspacing % One space after a full stop
+\parindent=0in % Do not indent paragraphs
+\brokenpenalty10000\relax % Do not page break at a hyphen
+
+\fancyhf{} % clear all header and footers
+\renewcommand{\headrulewidth}{0pt} % remove the header rule
+\rfoot{\thepage} 
+
+\iffalse
+\usepackage{listings}
+  \usepackage{courier}
+  \lstloadlanguages{C++}
+  \lstset{
+         language=C++,
+         basicstyle=\footnotesize\ttfamily, 
+         numbers=left,               
+         numberstyle=\tiny,          
+         numbersep=10pt,              
+         tabsize=4,                  
+         extendedchars=true,         
+         breaklines=true,            
+    	 frame=b,         
+         keywordstyle=\color{javapurple}\bfseries,
+         stringstyle=\color{javared},
+         commentstyle=\color{javagreen},
+         morecomment=[s][\color{javadocblue}]{/**}{*/},
+         showspaces=false,           
+         showtabs=false,            
+         xleftmargin=17pt,
+         framexleftmargin=17pt,
+         framexrightmargin=5pt,
+         framexbottommargin=4pt,
+         %backgroundcolor=\color{},
+         showstringspaces=false      
+ }
+
+\DeclareCaptionFont{white}{\color{white}}
+\DeclareCaptionFormat{listing}{\colorbox[cmyk]{0.43, 0.35, 0.35,0.01}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\captionsetup[lstlisting]{format=listing,labelfont=white,textfont=white, singlelinecheck=false, margin=0pt, font={bf,footnotesize}}
+\fi
+
+\begin{document}
+
+\includepdf{title/title_page.pdf} % Include title page
+%\includepdf{assign_cover.pdf} % Coversheet
+
+\thispagestyle{empty} % Clear page style
+\tableofcontents % TOC
+\clearpage
+\pagenumbering{arabic} % Resets numbering
+
+\section{Introduction}
+\section{Player/Stage}
+
+%\begin{wrapfigure}{r}{0.5\textwidth}
+%    \begin{center}
+%            \includegraphics[width=0.47\textwidth]{images/tree.png}
+%                \caption{Components of a search tree \hyperref[refs]{[2]}}
+%            \end{center}
+%        \end{wrapfigure}
+
+
+%[1] \textit{} [Online]. Available:\\ 
+%    \url{}
+
+\end{document}
+

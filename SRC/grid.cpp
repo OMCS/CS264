@@ -71,6 +71,10 @@ std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
     return arrayPosition; // Returns the 2D vector indices of the given x,y coordinate
 }
 
+/* This function returns true if a given coordinate contains an obstacle.
+ * Currently used for input validation but in the future could be used for
+ * path planning to detect invalid nodes in a search tree
+ */
 bool Grid::isObstacle(int xPos, int yPos)
 {
     std::pair<int,int> gridCell = mapToGridArray(xPos, yPos);
