@@ -29,8 +29,8 @@ player_pose2d_t BFS()
 
 bool isGoal(double curXPos, double curYPos) 
 {
-	if(std::abs(curXPos - goalX) < 0.05 && std::abs(curYPos - goalY) < 0.05)
-	{
+	if(std::abs(curXPos - goalX) < 0.15 && std::abs(curYPos - goalY) < 0.15)
+    {
 		return true;
 	}
 
@@ -67,22 +67,22 @@ int main(int argc, char *argv[])
         if ( (sp[0] + sp[1] + sp[2]) < (sp[5] + sp[6] + sp[7]) ) 
         //if ( (sp[0] + sp[1] ) < (sp[5] + sp[6]) ) 
         {
-			turnrate = dtor(-30); 
+			turnrate = dtor(-60); // Experimental Turn rates
 		} 
+
         else 
         {
 			turnrate = dtor(30);
 		}
 
-		if(sp[3] < 0.5 || sp[4] < 0.5) 
+		if (sp[3] < 0.6 || sp[4] < 0.6) 
         {
-            std::cout << "Danger!" << std::endl; 
-			pp.SetSpeed(0, turnrate);
+			pp.SetSpeed(-0.700, turnrate); // Move backwards
 		}
 
         else 
         {
-            pp.SetSpeed(0.150, turnrate);
+            pp.SetSpeed(0.300, turnrate);
         }
 
         usleep(150000);
