@@ -4,6 +4,7 @@
 #include <queue>
 #include <cmath>
 #include "grid.h"
+#include <unistd.h>
 
 using namespace PlayerCc;
 
@@ -42,6 +43,8 @@ int main(int argc, char *argv[])
 	RangerProxy      sp(&robot,0);
 	Position2dProxy pp(&robot,0);
 
+    double turnrate;
+
     pp.SetMotorEnable(false);
     
     robot.Read();
@@ -53,18 +56,42 @@ int main(int argc, char *argv[])
 
 	pp.SetMotorEnable(true);
 
-    pp.SetSpeed(0.200,30);
-
     bool atGoal = false;
+    player_pose2d_t newPos = BFS();
 
    /* TODO: Finish this loop */
 	while(!atGoal)
 	{
         robot.Read(); // Update position data
-        
-        player_pose2d_t newPos = BFS();
+
+        if ( (sp[0] + sp[1] + sp[2]) < (sp[5] + sp[6] + sp[7]) ) 
+        //if ( (sp[0] + sp[1] ) < (sp[5] + sp[6]) ) 
+        {
+			turnrate = dtor(-30); 
+		} 
+        else 
+        {
+			turnrate = dtor(30);
+		}
+
+		if(sp[3] < 0.5 || sp[4] < 0.5) 
+        {
+            std::cout << "Danger!" << std::endl; 
+			pp.SetSpeed(0, turnrate);
+		}
+
+        else 
+        {
+            pp.SetSpeed(0.150, turnrate);
+        }
+
+        usleep(150000);
 
         pp.GoTo(newPos);
+
+        usleep(100000);
+
+        //pp.SetSpeed(speed, turnrate);
 
         if (isGoal(pp.GetXPos(), pp.GetYPos()))
         {
