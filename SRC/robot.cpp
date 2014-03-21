@@ -44,17 +44,7 @@ bool isGoal(double curXPos, double curYPos)
 
 int main(int argc, char *argv[])
 {
-	PlayerClient    robot("localhost");
-	RangerProxy      sp(&robot,0);
-	Position2dProxy pp(&robot,0);
-
-    double turnrate;
-
-    pp.SetMotorEnable(false);
-    
-    robot.Read();
-
-    bool validInput = false;
+     bool validInput = false;
 
     while (!validInput)
     {
@@ -77,6 +67,16 @@ int main(int argc, char *argv[])
 
         validInput = true;
     }
+
+	PlayerClient    robot("localhost");
+	RangerProxy      sp(&robot,0);
+	Position2dProxy pp(&robot,0);
+
+    double turnrate;
+
+    pp.SetMotorEnable(false);
+    
+    robot.Read();
 
 	pp.SetMotorEnable(true);
 
