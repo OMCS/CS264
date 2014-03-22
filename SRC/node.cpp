@@ -1,10 +1,9 @@
-#include <string>
 #include "grid.h"
 #include "node.h"
 
 int Node::nodeCount = 0;
 
-Node::Node(Grid gridState, Node* parentNode, std::string moveDir)
+Node::Node(Grid gridState, Node* parentNode, Direction moveDir)
 {
     this->nodeId = nodeCount++;
     this->gridState = gridState;
@@ -27,7 +26,7 @@ Grid Node::getGridState()
     return this->gridState;
 }
 
-std::string Node::getMoveDir()
+Direction Node::getMoveDir()
 {
     return this->moveDir;
 }

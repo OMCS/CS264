@@ -1,6 +1,5 @@
 #pragma once
 
-#include <string>
 #include "grid.h"
 
 class Node 
@@ -11,14 +10,14 @@ class Node
 
         Node* parentNode;
         Grid gridState;
-        std::string moveDir;
+        Direction moveDir;
 
     public:
-        Node(Grid gridState, Node* parentNode, std::string moveDir);
+        Node(Grid gridState, Node* parentNode, Direction moveDir);
 
         int getNodeId();
         Node* getParentNode();
         Grid getGridState();
-        std::string getMoveDir();
+        Direction getMoveDir();
 };
 

@@ -5,6 +5,7 @@
 #include <cmath>
 #include <unistd.h>
 #include "grid.h"
+#include "node.h"
 
 using namespace PlayerCc;
 
@@ -16,8 +17,8 @@ double goalX, goalY;
 /* XXX: To be completed in the future when using deliberative path-finding */
 player_pose2d_t BFS()
 {
-    std::queue<Grid> frontier;
-    std::vector<Grid> visited; 
+    std::queue<Node> frontier;
+    std::vector<Node> visited; 
 
     player_pose2d_t newPos;
 
