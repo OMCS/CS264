@@ -42,7 +42,7 @@ bool isGoal(double curXPos, double curYPos)
 	return false;			
 }
 
-int main(int argc, char *argv[])
+void getUserInput()
 {
      bool validInput = false;
 
@@ -67,21 +67,25 @@ int main(int argc, char *argv[])
 
         validInput = true;
     }
+}
+
+int main(int argc, char *argv[])
+{
+    getUserInput();
 
 	PlayerClient    robot("localhost");
 	RangerProxy      sp(&robot,0);
 	Position2dProxy pp(&robot,0);
 
     double turnrate;
-
     pp.SetMotorEnable(false);
     
     robot.Read();
 
-	pp.SetMotorEnable(true);
-
     bool atGoal = false;
     player_pose2d_t newPos = BFS();
+
+    pp.SetMotorEnable(true);
 
     /* The main loop that while continue until the robot has reached its destination */
 	while(!atGoal)
