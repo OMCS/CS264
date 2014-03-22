@@ -87,6 +87,44 @@ bool Grid::isObstacle(int xPos, int yPos)
     return false;
 }
 
+/* This function returns a boolean expression which indicates whether a robot can move in a certain direction */
+bool Grid::canMove(int xPos, int yPos, Direction moveDir)
+{
+    std::pair<int,int> desiredCell = mapToGridArray(xPos, yPos);
+
+    switch (moveDir)
+    {
+        case UP:
+            if (gridContents[desiredCell.first - 1][desiredCell.second] == 1)
+            {
+                return false;
+            }
+            break;
+        case DOWN:
+            if (gridContents[desiredCell.first + 1][desiredCell.second] == 1)
+            {
+                return false;
+            }
+            break;
+        case LEFT:
+            if (gridContents[desiredCell.first][desiredCell.second - 1])
+            {
+                return false;
+            }
+            break;
+        case RIGHT:
+            if (gridContents[desiredCell.first][desiredCell.second + 1])
+            {
+                return false;
+            }
+            break;
+        default:
+            return false;
+    }
+
+    return true;
+}
+
 void Grid::printGrid()
 {
     for (int i = 0; i < gridContents.size(); i++)
