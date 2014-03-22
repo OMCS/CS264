@@ -12,7 +12,7 @@ static const int GRID_MAX_Y = 9;
 /* Enumerated value for directions, used in canMove() function */
 enum Direction
 {
-    UP, DOWN, LEFT, RIGHT
+    UP, DOWN, LEFT, RIGHT, NONE
 };
 
 class Grid

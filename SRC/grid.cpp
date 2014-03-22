@@ -107,13 +107,13 @@ bool Grid::canMove(int xPos, int yPos, Direction moveDir)
             }
             break;
         case LEFT:
-            if (gridContents[desiredCell.first][desiredCell.second - 1])
+            if (gridContents[desiredCell.first][desiredCell.second - 1] == 1)
             {
                 return false;
             }
             break;
         case RIGHT:
-            if (gridContents[desiredCell.first][desiredCell.second + 1])
+            if (gridContents[desiredCell.first][desiredCell.second + 1] == 1)
             {
                 return false;
             }

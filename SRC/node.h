@@ -19,5 +19,6 @@ class Node
         Node* getParentNode();
         Grid getGridState();
         Direction getMoveDir();
+        bool isGoalState(double curX, double curY);
 };
 

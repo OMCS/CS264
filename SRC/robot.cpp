@@ -14,11 +14,48 @@ bool atGoal = false;
 
 double goalX, goalY;
 
+std::vector<Node> spawnSuccessors(Node parentNode)
+{
+    std::vector<Node> successorList;
+
+    Grid parentGridState = parentNode.getGridState();
+
+    // TODO: Continue here, need to map these correctly
+    
+    return successorList;
+}
+
 /* XXX: To be completed in the future when using deliberative path-finding */
 player_pose2d_t BFS()
 {
     std::queue<Node> frontier;
-    std::vector<Node> visited; 
+    std::vector<Node> explored; 
+
+    Node rootNode = Node(occupancyGrid, NULL, NONE);
+    Node currentNode = rootNode;
+
+    bool pathingComplete = false;
+
+    while (!currentNode.isGoalState(goalX, goalY))
+    {
+        explored.push_back(currentNode);
+
+        std::vector<Node> successors = spawnSuccessors(currentNode);
+
+        for(Node successorNode : successors)
+        {
+            frontier.push(successorNode);
+
+            if (successorNode.isGoalState(goalX, goalY))
+            {
+                explored.push_back(currentNode);
+                break;
+            }
+        } 
+
+        currentNode = frontier.front(); // Set new current node to the node at the front of the queue 
+        frontier.pop(); // Remove element from front of queue
+    }
 
     player_pose2d_t newPos;
 
