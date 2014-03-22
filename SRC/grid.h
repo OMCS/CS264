@@ -2,6 +2,12 @@
 
 #include <vector>
 
+static const int GRID_MIN_X = -10;
+static const int GRID_MAX_X = 9;
+
+static const int GRID_MIN_Y = -9;
+static const int GRID_MAX_Y = 9;
+
 class Grid
 {
 	private:

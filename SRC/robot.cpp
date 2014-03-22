@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
     {
         std::cout << "Goal Position (X): ";
         std::cin >> goalX;
-        if (goalX < -10 || goalX > 9)
+        if (goalX < GRID_MIN_Y || goalX > GRID_MAX_X)
         {
             std::cerr << "\nInvalid goal position. Must be on grid\n\n";
             continue;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
         std::cout << "Goal Position (Y): ";
         std::cin >> goalY;
 
-        if (goalY < -9 || goalY > 9 || occupancyGrid.isObstacle(goalX, goalY))
+        if (goalY < GRID_MIN_Y || goalY > GRID_MAX_Y || occupancyGrid.isObstacle(goalX, goalY))
         {
             std::cerr << "\nInvalid goal position. Must be on grid and not an obstacle\n\n";
             continue;
