@@ -9,6 +9,7 @@
 using namespace PlayerCc;
 
 Grid occupancyGrid;
+bool atGoal = false;
 
 double goalX, goalY;
 
@@ -69,6 +70,21 @@ void getUserInput()
     }
 }
 
+/* This function continues executing the previous command passed to the robot. 
+ * It then checks to see if the goal state has been reached before 
+ * Allowing the next function to execute
+ */
+void continueNavigating(int delayMicroseconds, Position2dProxy &pp)
+{
+    usleep (delayMicroseconds);
+
+    if (isGoal(pp.GetXPos(), pp.GetYPos()))
+    {
+                std::cout << "Goal reached!" << std::endl;
+                std::exit(0);
+    }
+}
+
 int main(int argc, char *argv[])
 {
     getUserInput();
@@ -82,13 +98,12 @@ int main(int argc, char *argv[])
     
     robot.Read();
 
-    bool atGoal = false;
     player_pose2d_t newPos = BFS();
 
     pp.SetMotorEnable(true);
 
     /* The main loop that while continue until the robot has reached its destination */
-	while(!atGoal)
+	while(true)
 	{
         robot.Read(); // Update position data
 
@@ -105,7 +120,7 @@ int main(int argc, char *argv[])
 		if (sp[3] < 0.5 || sp[4] < 0.5) 
         {
 			pp.SetSpeed(-0.700, turnrate); // Move backwards
-            usleep(200000); // Move backwards for 200ms to get a sufficient distance from obstacles
+            continueNavigating(200000, pp); // Check if goal is reached immediately after sleeping and before receiving new command
 		}
 
         else 
@@ -113,27 +128,19 @@ int main(int argc, char *argv[])
             pp.SetSpeed(0.300, turnrate); // Standard speed and turn rate
         }
 
-        usleep(150000); // Continue obstacle avoidance behaviour for 150ms
-
-        pp.GoTo(newPos); // Seek goal position
+        continueNavigating(150000, pp); // Continue obstacle avoidance behaviour for 150ms
 
         if (distanceFromGoal(pp.GetXPos(), pp.GetYPos()) < 0.30) // Combined distance from goal
         {
-            usleep(200000); // Seek goal position for 200ms (makes movement around goal more accurate)
+            pp.GoTo(newPos); // Seek goal position...
+            continueNavigating(200000, pp); // for 200ms (makes movement around goal more accurate)
         }
 
         else
         {
-            usleep(120000); // Continue seeking goal position for 120ms
+            pp.GoTo(newPos); // Seek goal position...
+            continueNavigating(120000, pp); // for 120ms
         }
-
-        if (isGoal(pp.GetXPos(), pp.GetYPos()))
-        {
-            atGoal = true;
-            std::cout << "Goal reached!" << std::endl;
-        } 
 	} 
-
-    return(0);
 }
 
