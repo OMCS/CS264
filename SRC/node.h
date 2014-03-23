@@ -17,8 +17,8 @@ class Node
 
         int getNodeId();
         Node* getParentNode();
-        Grid getGridState();
+        Grid getGrid();
         Direction getMoveDir();
-        bool isGoalState(double curX, double curY);
+        bool isGoalState(double xPos, double yPos);
 };
 

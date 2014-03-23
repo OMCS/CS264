@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <cmath>
 #include "grid.h"
 
 Grid::Grid()
@@ -60,6 +61,8 @@ int Grid::getSize()
 /* This function maps coordinates of the form x,y to row,column
  * this is used for manipulating the internal array representation of the world 
  * e.g. to detect if a given goal position contains an obstacle
+ *
+ * XXX: In future this should map doubles to integers using the round() function
  */
 std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
 {
@@ -123,6 +126,12 @@ bool Grid::canMove(int xPos, int yPos, Direction moveDir)
     }
 
     return true;
+}
+
+/* This function moves the robot in the internal representation of the grid, this must be kept synchronised with actual robot movement */
+void Grid::moveRobot(int xPos, int yPos, Direction moveDir)
+{
+
 }
 
 void Grid::printGrid()

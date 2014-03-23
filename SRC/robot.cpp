@@ -9,61 +9,68 @@
 
 using namespace PlayerCc;
 
-Grid occupancyGrid;
-bool atGoal = false;
+Grid occupancyGrid; // Starting grid
 
-double goalX, goalY;
+/* Variables for graph searching */
+std::queue<Node> frontier;
+std::vector<Node> explored; 
 
-std::vector<Node> spawnSuccessors(Node parentNode)
+// FIXME: May need to make this into integer or retool my map function because you can't have partial cells in the indices, probably retool
+double goalX, goalY; // Store goal position
+
+// FIXME: This needs to be completed and debugged 
+std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
 {
     std::vector<Node> successorList;
 
-    Grid parentGridState = parentNode.getGridState();
+    Grid parentGridState = parentNode.getGrid();
 
-    // TODO: Continue here, need to map these correctly
-    
+    if (parentGridState.canMove(curXPos, curYPos, UP))
+    {
+        Grid newGridState(parentGridState.getContents()); // FIXME: This may be incorrect, intialize new grid with same contents as parent
+
+        newGridState.moveRobot(curXPos, curYPos, UP); // FIXME: Move the robot within the grid - will also need to move it in the sim
+
+        successorList.push_back(Node (newGridState, &parentNode, UP)); // UP is defined in grid.h as an enumerated value
+    }
+
     return successorList;
 }
 
-/* XXX: To be completed in the future when using deliberative path-finding */
-player_pose2d_t BFS()
+// FIXME: Make sure this works properly
+void BFS(int curXPos, int curYPos)
 {
-    std::queue<Node> frontier;
-    std::vector<Node> explored; 
-
     Node rootNode = Node(occupancyGrid, NULL, NONE);
     Node currentNode = rootNode;
 
-    bool pathingComplete = false;
+    bool pathFound = false;
 
-    while (!currentNode.isGoalState(goalX, goalY))
+    while (!currentNode.isGoalState(goalX, goalY)) 
     {
         explored.push_back(currentNode);
 
-        std::vector<Node> successors = spawnSuccessors(currentNode);
+        std::vector<Node> successors = spawnSuccessors(currentNode, curXPos, curYPos);
 
-        for(Node successorNode : successors)
+        for (Node successorNode : successors)
         {
             frontier.push(successorNode);
 
             if (successorNode.isGoalState(goalX, goalY))
             {
+                pathFound = true;
                 explored.push_back(currentNode);
-                break;
+                break; // Break out of this inner for loop
             }
         } 
+
+        if (pathFound)
+        {
+            break; // Found a path to the goal state, exit the outer while loop before altering the currentNode
+        }
 
         currentNode = frontier.front(); // Set new current node to the node at the front of the queue 
         frontier.pop(); // Remove element from front of queue
     }
-
-    player_pose2d_t newPos;
-
-    // XXX: This should be the next section of the path
-    newPos.px = goalX;
-    newPos.py = goalY;
-
-    return newPos;
 }
 
 double distanceFromGoal(double curXPos, double curYPos)
@@ -136,7 +143,11 @@ int main(int argc, char *argv[])
     
     robot.Read();
 
-    player_pose2d_t newPos = BFS();
+    /* FIXME: These 3 lines are debug code */ 
+    player_pose2d_t newPos;
+
+    newPos.px = goalX;
+    newPos.py = goalY; 
 
     pp.SetMotorEnable(true);
 

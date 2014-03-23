@@ -9,10 +9,10 @@ static const int GRID_MAX_X = 9;
 static const int GRID_MIN_Y = -9;
 static const int GRID_MAX_Y = 9;
 
-/* Enumerated value for directions, used in canMove() function */
+/* Enumerated value for directions, used in canMove() and other movement related functions */
 enum Direction
 {
-    UP, DOWN, LEFT, RIGHT, NONE
+    UP = 1, DOWN = 2, LEFT = 3 , RIGHT = 4, NONE = 0
 };
 
 class Grid
@@ -25,9 +25,10 @@ class Grid
         std::vector < std::vector <int> > getContents();
 		void setGrid(std::vector <std::vector <int> > newGrid);
         int getSize();
-        std::pair<int,int> mapToGridArray(int xPos, int yPos);
+        static std::pair<int,int> mapToGridArray(int xPos, int yPos); // Defined as static because this function doesn't require a grid instance
         bool isObstacle(int xPos, int yPos); 
         bool canMove(int xPos, int yPos, Direction moveDir);
+        void moveRobot(int xPos, int yPos, Direction moveDir);
         void printGrid();
 };
 

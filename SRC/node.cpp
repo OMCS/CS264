@@ -21,7 +21,7 @@ Node* Node::getParentNode()
     return this->parentNode;
 }
 
-Grid Node::getGridState()
+Grid Node::getGrid()
 {
     return this->gridState;
 }
@@ -31,9 +31,9 @@ Direction Node::getMoveDir()
     return this->moveDir;
 }
 
-bool Node::isGoalState(double curX, double curY)
+bool Node::isGoalState(double xPos, double yPos)
 {
-    std::pair<int,int> goalCoordinates = gridState.mapToGridArray(curX, curY); // Map the grid coordinates to vector indices in the internal representation of the world
+    std::pair<int,int> goalCoordinates = Grid::mapToGridArray(xPos, yPos); // Map the grid coordinates to vector indices in the internal representation of the world
 
     if (gridState.getContents()[goalCoordinates.first][goalCoordinates.second] == '3') // If the robot has entered the goal state...
     {
