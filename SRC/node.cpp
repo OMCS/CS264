@@ -1,5 +1,5 @@
-#include "grid.h"
-#include "node.h"
+#include "../include/grid.h"
+#include "../include/node.h"
 
 int Node::nodeCount = 0;
 

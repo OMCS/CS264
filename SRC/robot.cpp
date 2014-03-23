@@ -4,8 +4,8 @@
 #include <queue>
 #include <cmath>
 #include <unistd.h>
-#include "grid.h"
-#include "node.h"
+#include "../include/grid.h"
+#include "../include/node.h"
 
 using namespace PlayerCc;
 

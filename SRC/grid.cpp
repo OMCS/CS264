@@ -1,7 +1,7 @@
 #include <vector>
 #include <iostream>
 #include <cmath>
-#include "grid.h"
+#include "../include/grid.h"
 
 Grid::Grid()
 {
