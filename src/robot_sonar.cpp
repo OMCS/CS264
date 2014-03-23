@@ -12,13 +12,12 @@ using namespace PlayerCc;
 Grid occupancyGrid; // Starting grid
 
 /* Variables for graph searching */
-std::queue<Node> frontier; // Holds unexpanded child nodes
-std::vector<Node> explored;  // Holds explored nodes
+std::queue<Node> frontier;
+std::vector<Node> explored; 
 
-Node rootNode = Node(occupancyGrid, NULL, NONE); // Create the root node, parent node is set to NULL
-    
 double goalX, goalY; // Store goal position
 
+// FIXME: This needs to be completed and debugged 
 std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
 {
     std::vector<Node> successorList;
@@ -33,7 +32,7 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
         {
             Grid newGridState(parentGridState.getContents()); 
 
-            newGridState.moveRobot(curXPos, curYPos, moveDir); // Move the robot within the grid representation, can 'replay' these later
+            newGridState.moveRobot(curXPos, curYPos, moveDir); // FIXME: Move the robot within the vector - will also need to move it in the sim
 
             successorList.push_back(Node (newGridState, &parentNode, moveDir)); // moveDir is defined in grid.h as an enumerated value
         }
@@ -42,36 +41,10 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
     return successorList;
 }
 
-void displayPath(Node currentNode)
-{
-    std::string pathString;
-
-    std::cout << "Start Grid" << std::endl;
-    rootNode.getGrid().printGrid();
-
-    std::cout << "End Grid" << std::endl;
-    currentNode.getGrid().printGrid();
-
-    for (Node n : explored)
-    {
-        if (n.isGoalState(goalX, goalY))
-        {
-            while (&n != &rootNode) // Compare memory addresses of n and rootNode
-            {
-                pathString.append(n.getMoveDirString() + ", ");
-                n = n.getParentNode(); // Move one level back up the tree
-            }
-        }
-    }
-
-    std::cout << "Steps: " << pathString.length() << std::endl; 
-
-    std::cout << std::string (pathString.rbegin(), pathString.rend()) << std::endl; // Print out the reversed string 
-}
-
+// FIXME: Make sure this works properly
 void BFS(int curXPos, int curYPos)
 {
-    rootNode = Node(occupancyGrid, NULL, NONE);
+    Node rootNode = Node(occupancyGrid, NULL, NONE);
     Node currentNode = rootNode;
 
     bool pathFound = false;
@@ -102,8 +75,6 @@ void BFS(int curXPos, int curYPos)
         currentNode = frontier.front(); // Set new current node to the node at the front of the queue 
         frontier.pop(); // Remove element from front of queue
     }
-
-    displayPath(currentNode);
 }
 
 /* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
@@ -172,19 +143,58 @@ int main(int argc, char *argv[])
 	RangerProxy      sp(&robot,0);
 	Position2dProxy pp(&robot,0);
 
+    double turnrate;
     pp.SetMotorEnable(false);
     
     robot.Read();
 
+    /* FIXME: These 3 lines are debug code */ 
+    player_pose2d_t newPos;
+
+    newPos.px = goalX;
+    newPos.py = goalY; 
+
     pp.SetMotorEnable(true);
 
-    BFS(pp.GetXPos(), pp.GetYPos());
-
     /* The main loop that while continue until the robot has reached its destination */
-	while(!isGoal(pp.GetXPos(), pp.GetYPos()))
+	while(true)
 	{
         robot.Read(); // Update position data
 
+        if ( (sp[0] + sp[1] + sp[2]) < (sp[5] + sp[6] + sp[7]) ) 
+        {
+			turnrate = dtor(-60); // Turn rates decided after experimentation
+		} 
+
+        else 
+        {
+			turnrate = dtor(40);
+		}
+
+		if (sp[3] < 0.5 || sp[4] < 0.5) 
+        {
+			pp.SetSpeed(-0.700, turnrate); // Move backwards
+            continueNavigating(200000, pp); // Check if goal is reached immediately after sleeping and before receiving new command
+		}
+
+        else 
+        {
+            pp.SetSpeed(0.300, turnrate); // Standard speed and turn rate
+        }
+
+        continueNavigating(150000, pp); // Continue obstacle avoidance behaviour for 150ms
+
+        if (distanceFromGoal(pp.GetXPos(), pp.GetYPos()) < 0.30) // Combined distance from goal
+        {
+            pp.GoTo(newPos); // Seek goal position...
+            continueNavigating(200000, pp); // for 200ms (makes movement around goal more accurate)
+        }
+
+        else
+        {
+            pp.GoTo(newPos); // Seek goal position...
+            continueNavigating(120000, pp); // for 120ms
+        }
 	} 
 }
 

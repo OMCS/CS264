@@ -1,3 +1,4 @@
+#include <string>
 #include "../include/grid.h"
 #include "../include/node.h"
 
@@ -31,6 +32,32 @@ Direction Node::getMoveDir()
     return this->moveDir;
 }
 
+std::string Node::getMoveDirString()
+{
+    std::string moveDirStr;
+
+    switch (this->moveDir)
+    {
+        case UP:
+            moveDirStr = "UP";
+            break;
+        case DOWN:
+            moveDirStr = "DOWN";
+            break;
+        case LEFT:
+            moveDirStr = "LEFT";
+            break;
+        case RIGHT:
+            moveDirStr = "RIGHT";
+            break;
+        case NONE:
+            moveDirStr = "NONE";
+            break;
+    }
+
+    return moveDirStr;
+}
+
 bool Node::isGoalState(int xPos, int yPos)
 {
     std::pair<int,int> goalCoordinates = Grid::mapToGridArray(xPos, yPos); // Map the grid coordinates to vector indices in the internal representation of the world
@@ -42,3 +69,5 @@ bool Node::isGoalState(int xPos, int yPos)
 
     return false;
 }
+
+

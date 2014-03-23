@@ -140,7 +140,6 @@ std::pair<int,int> Grid::moveRobot(int curXPos, int curYPos, Direction moveDir)
     {
         case UP:
             gridContents[curPositionVector.first - 1][curPositionVector.second] = 2; // The robot's new position is represented with a 2
-            gridContents[curPositionVector.first][curPositionVector.second] =  0;
 
             /* Update the position in terms of grid coordinates
              * the robot will move in the simulator according to these values
@@ -177,7 +176,7 @@ std::pair<int,int> Grid::moveRobot(int curXPos, int curYPos, Direction moveDir)
 
     gridContents[curPositionVector.first][curPositionVector.second] = 0; // Replace the old position with a 0 (empty)
 
-    return newPositionGrid; // Return the new position, used in the command to move the robot
+    return newPositionGrid; // Return the new position, used in the command to move the robot in the simulator
 }
 
 void Grid::printGrid()
