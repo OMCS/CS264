@@ -1,5 +1,6 @@
 #include <vector>
 #include <iostream>
+#include <stdexcept>
 #include <cmath>
 #include "../include/grid.h"
 
@@ -127,10 +128,56 @@ bool Grid::canMove(int xPos, int yPos, Direction moveDir)
     return true;
 }
 
-/* This function moves the robot in the internal representation of the grid, this must be kept synchronised with actual robot movement */
-void Grid::moveRobot(int xPos, int yPos, Direction moveDir)
+/* This function moves the robot in the internal representation of the grid, this must be kept synchronised with actual robot movement
+ * returns the new position in grid coordinates 
+ */
+std::pair<int,int> Grid::moveRobot(int curXPos, int curYPos, Direction moveDir)
 {
+    std::pair<int,int> curPositionVector = Grid::mapToGridArray(curXPos, curYPos); // Convert to get the correct [row][col] indices
+    std::pair<int,int> newPositionGrid; // Pair to store the new grid coordinates in x,y format
 
+    switch (moveDir)
+    {
+        case UP:
+            gridContents[curPositionVector.first - 1][curPositionVector.second] = 2; // The robot's new position is represented with a 2
+            gridContents[curPositionVector.first][curPositionVector.second] =  0;
+
+            /* Update the position in terms of grid coordinates
+             * the robot will move in the simulator according to these values
+             */
+            newPositionGrid.first = curXPos;
+            newPositionGrid.second = curYPos + 1;
+
+            break;
+        case DOWN:
+            gridContents[curPositionVector.first + 1][curPositionVector.second] = 2;
+
+            newPositionGrid.first = curXPos;
+            newPositionGrid.second = curYPos - 1;
+
+            break;
+        case LEFT:
+            gridContents[curPositionVector.first][curPositionVector.second - 1] = 2;
+
+            newPositionGrid.first = curXPos - 1;
+            newPositionGrid.second = curYPos;
+
+            break;
+        case RIGHT:
+            gridContents[curPositionVector.first][curPositionVector.second + 1] = 2;
+
+            newPositionGrid.first = curXPos + 1;
+            newPositionGrid.second = curYPos;
+
+            break;
+        case NONE:
+            throw std::invalid_argument ("No move direction provided"); // Throw exception due to logic error
+            break;
+    }
+
+    gridContents[curPositionVector.first][curPositionVector.second] = 0; // Replace the old position with a 0 (empty)
+
+    return newPositionGrid; // Return the new position, used in the command to move the robot
 }
 
 void Grid::printGrid()

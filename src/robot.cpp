@@ -15,7 +15,6 @@ Grid occupancyGrid; // Starting grid
 std::queue<Node> frontier;
 std::vector<Node> explored; 
 
-// FIXME: May need to make this into integer or retool my map function because you can't have partial cells in the indices, probably retool
 double goalX, goalY; // Store goal position
 
 // FIXME: This needs to be completed and debugged 
@@ -25,42 +24,18 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
 
     Grid parentGridState = parentNode.getGrid();
 
-    // FIXME: Iterate through enum and can then remove a lot of similar lines
-
-    if (parentGridState.canMove(curXPos, curYPos, UP))
+    for (int DIRECTION = UP; DIRECTION < NONE; DIRECTION++)
     {
-        Grid newGridState(parentGridState.getContents()); // FIXME: This may be incorrect, intialize new grid with same contents as parent
+        Direction moveDir = static_cast<Direction>(DIRECTION); // Cast the integer to its corresponding enum value
 
-        newGridState.moveRobot(curXPos, curYPos, UP); // FIXME: Move the robot within the vector - will also need to move it in the sim
+        if (parentGridState.canMove(curXPos, curYPos, moveDir))
+        {
+            Grid newGridState(parentGridState.getContents()); 
 
-        successorList.push_back(Node (newGridState, &parentNode, UP)); // UP is defined in grid.h as an enumerated value
-    }
+            newGridState.moveRobot(curXPos, curYPos, moveDir); // FIXME: Move the robot within the vector - will also need to move it in the sim
 
-    if (parentGridState.canMove(curXPos, curYPos, DOWN))
-    {
-        Grid newGridState(parentGridState.getContents()); 
-
-        newGridState.moveRobot(curXPos, curYPos, DOWN);
-
-        successorList.push_back(Node (newGridState, &parentNode, DOWN)); 
-    }
-
-    if (parentGridState.canMove(curXPos, curYPos, LEFT))
-    {
-        Grid newGridState(parentGridState.getContents()); 
-
-        newGridState.moveRobot(curXPos, curYPos, LEFT); 
-
-        successorList.push_back(Node (newGridState, &parentNode, LEFT)); 
-    }
-
-    if (parentGridState.canMove(curXPos, curYPos, RIGHT))
-    {
-        Grid newGridState(parentGridState.getContents()); 
-
-        newGridState.moveRobot(curXPos, curYPos, RIGHT); 
-
-        successorList.push_back(Node (newGridState, &parentNode, RIGHT)); 
+            successorList.push_back(Node (newGridState, &parentNode, moveDir)); // moveDir is defined in grid.h as an enumerated value
+        }
     }
 
     return successorList;

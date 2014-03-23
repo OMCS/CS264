@@ -12,7 +12,7 @@ static const int GRID_MAX_Y = 9;
 /* Enumerated value for directions, used in canMove() and other movement related functions */
 enum Direction
 {
-    UP = 1, DOWN = 2, LEFT = 3 , RIGHT = 4, NONE = 0
+    UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3, NONE = 4
 };
 
 class Grid
@@ -28,7 +28,7 @@ class Grid
         static std::pair<int,int> mapToGridArray(int xPos, int yPos); // Defined as static because this function doesn't require a grid instance
         bool isObstacle(int xPos, int yPos); 
         bool canMove(int xPos, int yPos, Direction moveDir);
-        void moveRobot(int xPos, int yPos, Direction moveDir);
+        std::pair<int,int> moveRobot(int curXPos, int curYPos, Direction moveDir);
         void printGrid();
 };
 
