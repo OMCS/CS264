@@ -73,6 +73,7 @@ void BFS(int curXPos, int curYPos)
     }
 }
 
+/* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
 double distanceFromGoal(double curXPos, double curYPos)
 {
     return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);

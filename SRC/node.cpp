@@ -31,7 +31,7 @@ Direction Node::getMoveDir()
     return this->moveDir;
 }
 
-bool Node::isGoalState(double xPos, double yPos)
+bool Node::isGoalState(int xPos, int yPos)
 {
     std::pair<int,int> goalCoordinates = Grid::mapToGridArray(xPos, yPos); // Map the grid coordinates to vector indices in the internal representation of the world
 
