@@ -25,13 +25,42 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
 
     Grid parentGridState = parentNode.getGrid();
 
+    // FIXME: Iterate through enum and can then remove a lot of similar lines
+
     if (parentGridState.canMove(curXPos, curYPos, UP))
     {
         Grid newGridState(parentGridState.getContents()); // FIXME: This may be incorrect, intialize new grid with same contents as parent
 
-        newGridState.moveRobot(curXPos, curYPos, UP); // FIXME: Move the robot within the grid - will also need to move it in the sim
+        newGridState.moveRobot(curXPos, curYPos, UP); // FIXME: Move the robot within the vector - will also need to move it in the sim
 
         successorList.push_back(Node (newGridState, &parentNode, UP)); // UP is defined in grid.h as an enumerated value
+    }
+
+    if (parentGridState.canMove(curXPos, curYPos, DOWN))
+    {
+        Grid newGridState(parentGridState.getContents()); 
+
+        newGridState.moveRobot(curXPos, curYPos, DOWN);
+
+        successorList.push_back(Node (newGridState, &parentNode, DOWN)); 
+    }
+
+    if (parentGridState.canMove(curXPos, curYPos, LEFT))
+    {
+        Grid newGridState(parentGridState.getContents()); 
+
+        newGridState.moveRobot(curXPos, curYPos, LEFT); 
+
+        successorList.push_back(Node (newGridState, &parentNode, LEFT)); 
+    }
+
+    if (parentGridState.canMove(curXPos, curYPos, RIGHT))
+    {
+        Grid newGridState(parentGridState.getContents()); 
+
+        newGridState.moveRobot(curXPos, curYPos, RIGHT); 
+
+        successorList.push_back(Node (newGridState, &parentNode, RIGHT)); 
     }
 
     return successorList;
