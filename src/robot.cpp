@@ -54,19 +54,20 @@ void displayPath(Node currentNode)
 
     for (Node n : explored)
     {
-        if (n.isGoalState(goalX, goalY))
+        if (n.isGoalState(goalX, goalY)) // Found the Node which represents the goal state
         {
-            while (&n != &rootNode) // Compare memory addresses of n and rootNode
+            Node* ptrNode;
+            while (ptrNode != &rootNode) // Compare memory addresses of n and rootNode
             {
-                pathString.append(n.getMoveDirString() + ", ");
-                n = n.getParentNode(); // Move one level back up the tree
+                pathString.append(ptrNode->getMoveDirString() + ", ");
+                ptrNode = ptrNode->getParentNode(); // Move one level back up the tree
             }
         }
     }
 
     std::cout << "Steps: " << pathString.length() << std::endl; 
 
-    std::cout << std::string (pathString.rbegin(), pathString.rend()) << std::endl; // Print out the reversed string 
+    std::cout << std::string (pathString.rbegin(), pathString.rend()) << std::endl; // Print out path from beginning to end
 }
 
 void BFS(int curXPos, int curYPos)
@@ -114,12 +115,7 @@ double distanceFromGoal(double curXPos, double curYPos)
 
 bool isGoal(double curXPos, double curYPos) 
 {
-    if (distanceFromGoal(curXPos, curYPos) < 0.10) // If combined distance from goal is a negligible value
-    {
-		return true;
-	}
-
-	return false;			
+    return (distanceFromGoal(curXPos, curYPos) < 0.10); // If combined distance from goal is a negligible value
 }
 
 void getUserInput()
@@ -178,13 +174,14 @@ int main(int argc, char *argv[])
 
     pp.SetMotorEnable(true);
 
-    BFS(pp.GetXPos(), pp.GetYPos());
+    BFS(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
 
     /* The main loop that while continue until the robot has reached its destination */
 	while(!isGoal(pp.GetXPos(), pp.GetYPos()))
 	{
         robot.Read(); // Update position data
 
+        // FIXME: Move to path found in search results sequentially one square at a time
 	} 
 }
 

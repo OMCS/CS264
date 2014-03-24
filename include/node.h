@@ -19,6 +19,7 @@ class Node
         Node* getParentNode();
         Grid getGrid();
         Direction getMoveDir();
+        std::string getMoveDirString();
         bool isGoalState(int xPos, int yPos);
 };
 

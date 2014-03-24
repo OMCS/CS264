@@ -62,12 +62,7 @@ bool Node::isGoalState(int xPos, int yPos)
 {
     std::pair<int,int> goalCoordinates = Grid::mapToGridArray(xPos, yPos); // Map the grid coordinates to vector indices in the internal representation of the world
 
-    if (gridState.getContents()[goalCoordinates.first][goalCoordinates.second] == '3') // If the robot has entered the goal state...
-    {
-        return true;   
-    }
-
-    return false;
+    return (gridState.getContents()[goalCoordinates.first][goalCoordinates.second] == '3'); // True if the robot is at goal, false otherwise
 }
 
 
