@@ -15,15 +15,9 @@ Node::Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveD
     this->yPos = yPos; 
 }
 
-/* Constructor for copying a Node object from a pointer */
-Node::Node(Node* copyNode)
+Node::~Node()
 {
-    this->nodeId = copyNode->getNodeId();
-    this->gridState = copyNode->getGrid();
-    this->parentNode = copyNode->getParentNode();
-    this->moveDir = copyNode->getMoveDir();
-    this->xPos = copyNode->getXPos();
-    this->yPos = copyNode->getYPos();
+    delete parentNode;
 }
 
 int Node::getNodeId() const

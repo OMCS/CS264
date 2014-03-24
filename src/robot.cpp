@@ -13,55 +13,55 @@ using namespace PlayerCc;
 Grid occupancyGrid; // Starting grid
 
 /* Variables for graph searching */
-std::queue<Node> frontier; // Holds unexpanded child nodes
-std::vector<Node> explored;  // Holds explored nodes
+std::queue<Node*> frontier; // Holds unexpanded child nodes
+std::vector<Node*> explored;  // Holds explored nodes
 
 double goalX, goalY; // Store goal position
 
-std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
+std::vector<Node*> spawnSuccessors(Node* parentNode, int curXPos, int curYPos)
 {
-    std::vector<Node> successorList;
+    std::vector<Node*> successorList;
 
-    Grid parentGridState = parentNode.getGrid();
+    Grid parentGridState = parentNode->getGrid();
 
     for (int DIRECTION = UP; DIRECTION < NONE; DIRECTION++)
     {
         Direction moveDir = static_cast<Direction>(DIRECTION); // Cast the integer to its corresponding enum value
 
-        if (parentGridState.canMove(parentNode.getXPos(), parentNode.getYPos(), moveDir))
+        if (parentGridState.canMove(parentNode->getXPos(), parentNode->getYPos(), moveDir))
         {
             Grid newGridState(parentGridState.getContents()); 
 
             /* Move the robot within the grid representation, can 'replay' these later
              * will return the new position of the robot within the grid
              */
-            std::pair<int,int> newCoordinates = newGridState.moveRobot(parentNode.getXPos(), parentNode.getYPos(), moveDir); // newCoordinates.first = x, second = y
+            std::pair<int,int> newCoordinates = newGridState.moveRobot(parentNode->getXPos(), parentNode->getYPos(), moveDir); // newCoordinates.first = x, second = y
 
-            successorList.push_back(Node (newGridState, &parentNode, newCoordinates.first, newCoordinates.second, moveDir)); // moveDir is defined in grid.h as an enumerated value
+            successorList.push_back(new Node (newGridState, parentNode, newCoordinates.first, newCoordinates.second, moveDir)); // moveDir is defined in grid.h as an enumerated value
         }
     }
 
     return successorList;
 }
 
-void displayPath(Node rootNode, Node currentNode)
+void displayPath(Node* rootNode, Node* currentNode)
 {
     std::string pathString;
 
     std::cout << "Start Grid" << std::endl;
-    rootNode.getGrid().printGrid();
+    rootNode->getGrid().printGrid();
 
     std::cout << "\n\nEnd Grid" << std::endl;
-    currentNode.getGrid().printGrid();
+    currentNode->getGrid().printGrid();
 
-    for (Node n : explored)
+    for (Node* n : explored)
     {
-        if (n.isGoalState(goalX, goalY)) // Found the node which represents the goal state
+        if (n->isGoalState(goalX, goalY)) // Found the node which represents the goal state
         {
-            while (n.getParentNode() != NULL) // Traverse upwards until we reach the root node FIXME: Infinite loop occurs here 
+            while (n->getParentNode() != NULL) // Traverse upwards until we reach the root node FIXME: Infinite loop occurs here 
             {
-                pathString.append(n.getMoveDirString() + " ");
-                n = n.getParentNode();
+                pathString.append(n->getMoveDirString() + " ");
+                n = n->getParentNode();
             }
         }
     }
@@ -71,25 +71,25 @@ void displayPath(Node rootNode, Node currentNode)
 
 void BFS(int curXPos, int curYPos)
 {
-    Node rootNode = Node(occupancyGrid, NULL, curXPos, curYPos, NONE); // Create the root node, the parent node is set to NULL
-    Node currentNode = rootNode;
+    Node* rootNode = new Node(occupancyGrid, NULL, curXPos, curYPos, NONE); // Create the root node, the parent node is set to NULL
+    Node* currentNode = rootNode;
 
     bool pathFound = false;
 
-    while (!currentNode.isGoalState(goalX, goalY)) 
+    while (!currentNode->isGoalState(goalX, goalY)) 
     {
         explored.push_back(currentNode);
 
-        std::vector<Node> successors = spawnSuccessors(currentNode, currentNode.getXPos(), currentNode.getYPos()); 
+        std::vector<Node*> successors = spawnSuccessors(currentNode, currentNode->getXPos(), currentNode->getYPos()); 
 
-        for (Node successorNode : successors)
+        for (Node* successorNode : successors)
         {
             if (std::find(explored.begin(), explored.end(), successorNode) == explored.end())
             {
                 frontier.push(successorNode);
             }
 
-            if (successorNode.isGoalState(goalX, goalY))
+            if (successorNode->isGoalState(goalX, goalY))
             {
                 pathFound = true;
                 explored.push_back(successorNode);
