@@ -100,25 +100,25 @@ bool Grid::canMove(int xPos, int yPos, Direction moveDir)
     switch (moveDir)
     {
         case UP:
-            if (xPos == GRID_MAX_X || gridContents[desiredCell.first - 1][desiredCell.second] == 1) // Short circuit eval prevents segfault
+            if (yPos == GRID_MAX_Y || gridContents[desiredCell.first - 1][desiredCell.second] == 1) // Short circuit eval prevents segfault
             {
                 return false;
             }
             break;
         case DOWN:
-            if (gridContents[desiredCell.first + 1][desiredCell.second] == 1)
+            if (yPos == GRID_MIN_Y || gridContents[desiredCell.first + 1][desiredCell.second] == 1)
             {
                 return false;
             }
             break;
         case LEFT:
-            if (gridContents[desiredCell.first][desiredCell.second - 1] == 1)
+            if (xPos == GRID_MIN_X || gridContents[desiredCell.first][desiredCell.second - 1] == 1)
             {
                 return false;
             }
             break;
         case RIGHT:
-            if (gridContents[desiredCell.first][desiredCell.second + 1] == 1)
+            if (xPos == GRID_MAX_X || gridContents[desiredCell.first][desiredCell.second + 1] == 1)
             {
                 return false;
             }

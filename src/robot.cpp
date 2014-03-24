@@ -30,18 +30,16 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
     {
         Direction moveDir = static_cast<Direction>(DIRECTION); // Cast the integer to its corresponding enum value
 
-        if (parentGridState.canMove(curXPos, curYPos, moveDir))
+        if (parentGridState.canMove(parentNode.getXPos(), parentNode.getYPos(), moveDir))
         {
             Grid newGridState(parentGridState.getContents()); 
 
-            /* Move the robot within the grid representation, can 'replay' these later */
-            std::pair<int,int> newCoordinates = newGridState.moveRobot(curXPos, curYPos, moveDir); 
+            /* Move the robot within the grid representation, can 'replay' these later
+             * will return the new position of the robot within the grid
+             */
+            std::pair<int,int> newCoordinates = newGridState.moveRobot(parentNode.getXPos(), parentNode.getYPos(), moveDir); // newCoordinates.first = x, second = y
 
-            successorList.push_back(Node (newGridState, &parentNode, moveDir)); // moveDir is defined in grid.h as an enumerated value
-
-            // FIXME: Do these even matter, don't we need to change the ones kept in BFS?
-            curXPos = newCoordinates.first; 
-            curYPos = newCoordinates.second;
+            successorList.push_back(Node (newGridState, &parentNode, newCoordinates.first, newCoordinates.second, moveDir)); // moveDir is defined in grid.h as an enumerated value
         }
     }
 
@@ -64,7 +62,7 @@ void displayPath(Node currentNode)
     {
         if (n.isGoalState(goalX, goalY)) // Found the node which represents the goal state
         {
-            while (n.getNodeId() != rootNode.getNodeId()) // Traverse backwards until we reach the root node
+            while (n.getNodeId() != rootNode.getNodeId()) // Traverse backwards until we reach the root node FIXME: Infinite loop occurs here 
             {
                 pathString.append(n.getMoveDirString() + " ");
                 n = Node(n.getParentNode()); // Move up the tree one node
@@ -77,7 +75,7 @@ void displayPath(Node currentNode)
 
 void BFS(int curXPos, int curYPos)
 {
-    rootNode = Node(occupancyGrid, NULL, NONE);
+    rootNode = Node(occupancyGrid, NULL, curXPos, curYPos, NONE);
     Node currentNode = rootNode;
 
     bool pathFound = false;
@@ -86,7 +84,7 @@ void BFS(int curXPos, int curYPos)
     {
         explored.push_back(currentNode);
 
-        std::vector<Node> successors = spawnSuccessors(currentNode, curXPos, curYPos); 
+        std::vector<Node> successors = spawnSuccessors(currentNode, currentNode.getXPos(), currentNode.getYPos()); 
 
         for (Node successorNode : successors)
         {
@@ -112,7 +110,7 @@ void BFS(int curXPos, int curYPos)
         }
     }
 
-    displayPath(currentNode); // Display the solution
+    displayPath(explored.at(explored.size() - 1)); // Display the solution
 }
 
 /* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */

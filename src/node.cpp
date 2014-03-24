@@ -5,20 +5,32 @@
 int Node::nodeCount = 0;
 
 Node::Node(Grid gridState, Node* parentNode, Direction moveDir)
-{
+{    
     this->nodeId = nodeCount++;
     this->gridState = gridState;
     this->parentNode = parentNode;
     this->moveDir = moveDir; 
 }
 
-/* Constructor for copying a Node object from a pointer */
-Node::Node(Node* parentNode)
+Node::Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveDir)
 {
-    this->nodeId = parentNode->getNodeId();
-    this->gridState = parentNode->getGrid();
+    this->nodeId = nodeCount++;
+    this->gridState = gridState;
     this->parentNode = parentNode;
-    this->moveDir = parentNode->getMoveDir();
+    this->moveDir = moveDir; 
+    this->xPos = xPos;
+    this->yPos = yPos;
+}
+
+/* Constructor for copying a Node object from a pointer */
+Node::Node(Node* copyNode)
+{
+    this->nodeId = copyNode->getNodeId();
+    this->gridState = copyNode->getGrid();
+    this->parentNode = copyNode->getParentNode();
+    this->moveDir = copyNode->getMoveDir();
+    this->xPos = copyNode->getXPos();
+    this->yPos = copyNode->getYPos();
 }
 
 int Node::getNodeId() const
@@ -39,6 +51,16 @@ Grid Node::getGrid()
 Direction Node::getMoveDir()
 {
     return this->moveDir;
+}
+
+int Node::getXPos()
+{
+    return this->xPos;
+}
+
+int Node:: getYPos()
+{
+    return this->yPos;
 }
 
 std::string Node::getMoveDirString()
