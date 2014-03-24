@@ -77,6 +77,7 @@ std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
 
 /* This function returns true if a given coordinate contains an obstacle
  * can be used for input validation and path planning
+ * the latter is currently managed by the canMove() function
  */
 bool Grid::isObstacle(int xPos, int yPos)
 {
@@ -88,12 +89,18 @@ bool Grid::isObstacle(int xPos, int yPos)
 /* This function returns a boolean expression which indicates whether a robot can move in a certain direction */
 bool Grid::canMove(int xPos, int yPos, Direction moveDir)
 {
+    /* If requested position is off the grid, return false */
+     if (xPos < GRID_MIN_X || xPos > GRID_MAX_X || yPos < GRID_MIN_Y || yPos > GRID_MAX_Y)
+     {
+         return false;
+     }
+
     std::pair<int,int> desiredCell = mapToGridArray(xPos, yPos);
 
     switch (moveDir)
     {
         case UP:
-            if (gridContents[desiredCell.first - 1][desiredCell.second] == 1)
+            if (xPos == GRID_MAX_X || gridContents[desiredCell.first - 1][desiredCell.second] == 1) // Short circuit eval prevents segfault
             {
                 return false;
             }

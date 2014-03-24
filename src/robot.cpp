@@ -33,9 +33,13 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
         {
             Grid newGridState(parentGridState.getContents()); 
 
-            newGridState.moveRobot(curXPos, curYPos, moveDir); // Move the robot within the grid representation, can 'replay' these later
+            /* Move the robot within the grid representation, can 'replay' these later */
+            std::pair<int,int> newCoordinates = newGridState.moveRobot(curXPos, curYPos, moveDir); 
 
             successorList.push_back(Node (newGridState, &parentNode, moveDir)); // moveDir is defined in grid.h as an enumerated value
+
+            curXPos = newCoordinates.first;
+            curYPos = newCoordinates.second;
         }
     }
 
@@ -81,7 +85,7 @@ void BFS(int curXPos, int curYPos)
     {
         explored.push_back(currentNode);
 
-        std::vector<Node> successors = spawnSuccessors(currentNode, curXPos, curYPos);
+        std::vector<Node> successors = spawnSuccessors(currentNode, curXPos, curYPos); 
 
         for (Node successorNode : successors)
         {
@@ -177,11 +181,11 @@ int main(int argc, char *argv[])
     BFS(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
 
     /* The main loop that while continue until the robot has reached its destination */
-	while(!isGoal(pp.GetXPos(), pp.GetYPos()))
+	/*while(!isGoal(pp.GetXPos(), pp.GetYPos()))
 	{
         robot.Read(); // Update position data
 
         // FIXME: Move to path found in search results sequentially one square at a time
-	} 
+	}*/
 }
 
