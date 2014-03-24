@@ -35,7 +35,7 @@ Direction Node::getMoveDir()
 std::string Node::getMoveDirString()
 {
     std::string moveDirStr;
-
+    
     switch (this->moveDir)
     {
         case UP:
@@ -62,7 +62,7 @@ bool Node::isGoalState(int xPos, int yPos)
 {
     std::pair<int,int> goalCoordinates = Grid::mapToGridArray(xPos, yPos); // Map the grid coordinates to vector indices in the internal representation of the world
 
-    return (gridState.getContents()[goalCoordinates.first][goalCoordinates.second] == '3'); // True if the robot is at goal, false otherwise
+    return (gridState.getContents()[goalCoordinates.first][goalCoordinates.second] == 2); // True if the robot is at goal, false otherwise
 }
 
 

@@ -38,7 +38,8 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
 
             successorList.push_back(Node (newGridState, &parentNode, moveDir)); // moveDir is defined in grid.h as an enumerated value
 
-            curXPos = newCoordinates.first;
+            // FIXME: Do these even matter, don't we need to change the ones kept in BFS?
+            curXPos = newCoordinates.first; 
             curYPos = newCoordinates.second;
         }
     }
@@ -51,27 +52,27 @@ void displayPath(Node currentNode)
     std::string pathString;
 
     std::cout << "Start Grid" << std::endl;
+    std::cout << rootNode.getNodeId() << std::endl;
     rootNode.getGrid().printGrid();
 
     std::cout << "End Grid" << std::endl;
+    std::cout << currentNode.getNodeId() << std::endl;
     currentNode.getGrid().printGrid();
 
     for (Node n : explored)
     {
         if (n.isGoalState(goalX, goalY)) // Found the Node which represents the goal state
         {
-            Node* ptrNode;
-            while (ptrNode != &rootNode) // Compare memory addresses of n and rootNode
+            // FIXME: This is broken currently, need to reassign n to n.getParentNode() somehow
+            while (&n != &rootNode) // Compare memory addresses of n and rootNode
             {
-                pathString.append(ptrNode->getMoveDirString() + ", ");
-                ptrNode = ptrNode->getParentNode(); // Move one level back up the tree
+                std::cout << n.getNodeId() << std::endl;
+                pathString.append(n.getMoveDirString() + ", ");
             }
         }
     }
 
-    std::cout << "Steps: " << pathString.length() << std::endl; 
-
-    std::cout << std::string (pathString.rbegin(), pathString.rend()) << std::endl; // Print out path from beginning to end
+    std::cout << "\n\nPATH:" << std::string (pathString.rbegin(), pathString.rend()) << std::endl; // Print out path from beginning to end
 }
 
 void BFS(int curXPos, int curYPos)
@@ -94,21 +95,22 @@ void BFS(int curXPos, int curYPos)
             if (successorNode.isGoalState(goalX, goalY))
             {
                 pathFound = true;
-                explored.push_back(currentNode);
+                explored.push_back(successorNode);
                 break; // Break out of this inner for loop
             }
         } 
 
-        if (pathFound)
-        {
-            break; // Found a path to the goal state, exit the outer while loop before altering the currentNode
-        }
-
         currentNode = frontier.front(); // Set new current node to the node at the front of the queue 
         frontier.pop(); // Remove element from front of queue
+
+        if (pathFound) 
+        {
+            break; // Finished searching
+        }
+
     }
 
-    displayPath(currentNode);
+    displayPath(currentNode); // Display the solution
 }
 
 /* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
