@@ -10,13 +10,27 @@
 
 using namespace PlayerCc;
 
-Grid occupancyGrid; // Starting grid
+double goalX, goalY; // Store goal position
+
+/* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
+double distanceFromGoal(double curXPos, double curYPos)
+{
+    return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);
+}
+
+struct findClosestNode
+{
+    bool operator() (Node* const &firstNode, Node* const &secondNode)
+    {
+        // Return 'true' if firstNode is closer than secondNode
+        return distanceFromGoal(firstNode->getXPos(),firstNode->getYPos()) < distanceFromGoal(secondNode->getXPos(),secondNode->getYPos());
+    }
+};
 
 /* Variables for graph searching */
-std::queue<Node*> frontier; // Holds unexpanded child nodes
+Grid occupancyGrid; // Default grid state
+std::priority_queue<Node*, std::vector<Node*>, findClosestNode> frontier; // Holds unexpanded child nodes
 std::vector<Node*> explored;  // Holds explored nodes
-
-double goalX, goalY; // Store goal position
 
 std::vector<Node*> spawnSuccessors(Node* parentNode, int curXPos, int curYPos)
 {
@@ -58,10 +72,10 @@ void displayPath(Node* rootNode, Node* currentNode)
     {
         if (n->isGoalState(goalX, goalY)) // Found the node which represents the goal state
         {
-            while (n->getParentNode() != NULL) // Traverse upwards until we reach the root node FIXME: Infinite loop occurs here 
+            while (n->getParentNode() != NULL) // Traverse upwards until we reach the root node 
             {
-                pathString.append(n->getMoveDirString() + " ");
-                n = n->getParentNode();
+                pathString.append(n->getMoveDirString() + " "); // Append the direction to the string
+                n = n->getParentNode(); // Move one level back up the tree
             }
         }
     }
@@ -69,7 +83,7 @@ void displayPath(Node* rootNode, Node* currentNode)
     std::cout << "\n\nPATH: " << pathString << std::endl;
 }
 
-void BFS(int curXPos, int curYPos)
+void BestFirstSearch(int curXPos, int curYPos)
 {
     Node* rootNode = new Node(occupancyGrid, NULL, curXPos, curYPos, NONE); // Create the root node, the parent node is set to NULL
     Node* currentNode = rootNode;
@@ -97,8 +111,8 @@ void BFS(int curXPos, int curYPos)
             }
         } 
 
-        currentNode = frontier.front(); // Set new current node to the node at the front of the queue 
-        frontier.pop(); // Remove element from front of queue
+        currentNode = frontier.top(); // Set new current node to the node at the front of the queue 
+        frontier.pop(); // Remove element from top of queue
 
         if (pathFound) 
         {
@@ -107,12 +121,6 @@ void BFS(int curXPos, int curYPos)
     }
 
     displayPath(rootNode, explored.at(explored.size() - 1)); // Display the solution from the rootNode to the goal node (last node added to the explored list)
-}
-
-/* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
-double distanceFromGoal(double curXPos, double curYPos)
-{
-    return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);
 }
 
 bool isGoal(double curXPos, double curYPos) 
@@ -178,14 +186,14 @@ int main(int argc, char *argv[])
 
     pp.SetMotorEnable(true);
 
-    BFS(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
+    Pathfinding::BestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
 
     /* The main loop that while continue until the robot has reached its destination */
 	/*while(!isGoal(pp.GetXPos(), pp.GetYPos()))
 	{
         robot.Read(); // Update position data
 
-        // FIXME: Move to path found in search results sequentially one square at a time
+        // FIXME: Move to path found in search results sequentially one square at a time, will need display to output a vector or similar
 	}*/
 }
 
