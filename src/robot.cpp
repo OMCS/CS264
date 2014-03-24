@@ -16,8 +16,6 @@ Grid occupancyGrid; // Starting grid
 std::queue<Node> frontier; // Holds unexpanded child nodes
 std::vector<Node> explored;  // Holds explored nodes
 
-Node rootNode = Node(occupancyGrid, NULL, NONE); // Create the root node, parent node is set to NULL
-    
 double goalX, goalY; // Store goal position
 
 std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
@@ -46,26 +44,29 @@ std::vector<Node> spawnSuccessors(Node parentNode, int curXPos, int curYPos)
     return successorList;
 }
 
-void displayPath(Node currentNode)
+void displayPath(Node rootNode, Node currentNode)
 {
     std::string pathString;
 
     std::cout << "Start Grid" << std::endl;
-    //std::cout << rootNode.getNodeId() << std::endl;
     rootNode.getGrid().printGrid();
 
     std::cout << "\n\nEnd Grid" << std::endl;
-    //std::cout << currentNode.getNodeId() << std::endl;
     currentNode.getGrid().printGrid();
 
     for (Node n : explored)
     {
         if (n.isGoalState(goalX, goalY)) // Found the node which represents the goal state
         {
-            while (n.getNodeId() != rootNode.getNodeId()) // Traverse backwards until we reach the root node FIXME: Infinite loop occurs here 
+            while (n != rootNode) // Traverse backwards until we reach the root node FIXME: Infinite loop occurs here 
             {
+                /* FIXME: Debug code */
+                std::cout << "Current Node: " << &n << std::endl; 
+                std::cout << "rootNode: " << &rootNode << std::endl; 
                 pathString.append(n.getMoveDirString() + " ");
                 n = Node(n.getParentNode()); // Move up the tree one node
+                std::cout << "New Node:" << &n << std::endl;
+                usleep(1000000);
             }
         }
     }
@@ -75,7 +76,7 @@ void displayPath(Node currentNode)
 
 void BFS(int curXPos, int curYPos)
 {
-    rootNode = Node(occupancyGrid, NULL, curXPos, curYPos, NONE);
+    Node rootNode = Node(occupancyGrid, NULL, curXPos, curYPos, NONE); // Create the root node, the parent node is set to NULL
     Node currentNode = rootNode;
 
     bool pathFound = false;
@@ -110,7 +111,7 @@ void BFS(int curXPos, int curYPos)
         }
     }
 
-    displayPath(explored.at(explored.size() - 1)); // Display the solution
+    displayPath(rootNode, explored.at(explored.size() - 1)); // Display the solution from the rootNode to the goal node (last node added to the explored list)
 }
 
 /* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
@@ -132,18 +133,20 @@ void getUserInput()
     {
         std::cout << "Goal Position (X): ";
         std::cin >> goalX;
-        if (goalX < GRID_MIN_Y || goalX > GRID_MAX_X)
+        if (std::cin.fail() || goalX < GRID_MIN_Y || goalX > GRID_MAX_X)
         {
-            std::cerr << "\nInvalid goal position. Must be on grid\n\n";
+            std::cin.clear(); std::cin.ignore();
+            std::cerr << "\n\nInvalid goal position. Input must be numerical and a valid grid position\n\n";
             continue;
         }
 
         std::cout << "Goal Position (Y): ";
         std::cin >> goalY;
 
-        if (goalY < GRID_MIN_Y || goalY > GRID_MAX_Y || occupancyGrid.isObstacle(goalX, goalY))
+        if (std::cin.fail() || goalY < GRID_MIN_Y || goalY > GRID_MAX_Y || occupancyGrid.isObstacle(goalX, goalY))
         {
-            std::cerr << "\nInvalid goal position. Must be on grid and not an obstacle\n\n";
+            std::cin.clear(); std::cin.ignore();
+            std::cerr << "\n\nInvalid goal position. Input must be numerical, a valid grid position and not an obstacle\n\n";
             continue;
         }
 

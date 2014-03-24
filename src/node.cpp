@@ -4,14 +4,6 @@
 
 int Node::nodeCount = 0;
 
-Node::Node(Grid gridState, Node* parentNode, Direction moveDir)
-{    
-    this->nodeId = nodeCount++;
-    this->gridState = gridState;
-    this->parentNode = parentNode;
-    this->moveDir = moveDir; 
-}
-
 Node::Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveDir)
 {
     this->nodeId = nodeCount++;
