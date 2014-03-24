@@ -15,7 +15,6 @@ class Node
         Direction moveDir;
 
     public:
-        Node(Grid gridState, Node* parentNode, Direction moveDir); // Bare constructor
         Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveDir); // Standard constructor
         Node(Node* parentNode); // 'Copy' constructor
 

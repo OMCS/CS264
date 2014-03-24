@@ -58,15 +58,10 @@ void displayPath(Node rootNode, Node currentNode)
     {
         if (n.isGoalState(goalX, goalY)) // Found the node which represents the goal state
         {
-            while (n != rootNode) // Traverse backwards until we reach the root node FIXME: Infinite loop occurs here 
+            while (n.getParentNode() != NULL) // Traverse upwards until we reach the root node FIXME: Infinite loop occurs here 
             {
-                /* FIXME: Debug code */
-                std::cout << "Current Node: " << &n << std::endl; 
-                std::cout << "rootNode: " << &rootNode << std::endl; 
                 pathString.append(n.getMoveDirString() + " ");
-                n = Node(n.getParentNode()); // Move up the tree one node
-                std::cout << "New Node:" << &n << std::endl;
-                usleep(1000000);
+                n = n.getParentNode();
             }
         }
     }

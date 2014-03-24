@@ -1,3 +1,4 @@
+#include<iostream>
 #include <string>
 #include "../include/grid.h"
 #include "../include/node.h"
@@ -5,13 +6,13 @@
 int Node::nodeCount = 0;
 
 Node::Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveDir)
-{
+{ 
     this->nodeId = nodeCount++;
     this->gridState = gridState;
     this->parentNode = parentNode;
     this->moveDir = moveDir; 
     this->xPos = xPos;
-    this->yPos = yPos;
+    this->yPos = yPos; 
 }
 
 /* Constructor for copying a Node object from a pointer */
