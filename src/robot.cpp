@@ -3,6 +3,7 @@
 #include <vector>
 #include <queue>
 #include <cmath>
+#include <algorithm>
 #include <unistd.h>
 #include "../include/grid.h"
 #include "../include/node.h"
@@ -52,27 +53,26 @@ void displayPath(Node currentNode)
     std::string pathString;
 
     std::cout << "Start Grid" << std::endl;
-    std::cout << rootNode.getNodeId() << std::endl;
+    //std::cout << rootNode.getNodeId() << std::endl;
     rootNode.getGrid().printGrid();
 
-    std::cout << "End Grid" << std::endl;
-    std::cout << currentNode.getNodeId() << std::endl;
+    std::cout << "\n\nEnd Grid" << std::endl;
+    //std::cout << currentNode.getNodeId() << std::endl;
     currentNode.getGrid().printGrid();
 
     for (Node n : explored)
     {
-        if (n.isGoalState(goalX, goalY)) // Found the Node which represents the goal state
+        if (n.isGoalState(goalX, goalY)) // Found the node which represents the goal state
         {
-            // FIXME: This is broken currently, need to reassign n to n.getParentNode() somehow
-            while (&n != &rootNode) // Compare memory addresses of n and rootNode
+            while (n.getNodeId() != rootNode.getNodeId()) // Traverse backwards until we reach the root node
             {
-                std::cout << n.getNodeId() << std::endl;
-                pathString.append(n.getMoveDirString() + ", ");
+                pathString.append(n.getMoveDirString() + " ");
+                n = Node(n.getParentNode()); // Move up the tree one node
             }
         }
     }
 
-    std::cout << "\n\nPATH:" << std::string (pathString.rbegin(), pathString.rend()) << std::endl; // Print out path from beginning to end
+    std::cout << "\n\nPATH: " << pathString << std::endl;
 }
 
 void BFS(int curXPos, int curYPos)
@@ -90,7 +90,10 @@ void BFS(int curXPos, int curYPos)
 
         for (Node successorNode : successors)
         {
-            frontier.push(successorNode);
+            if (std::find(explored.begin(), explored.end(), successorNode) == explored.end())
+            {
+                frontier.push(successorNode);
+            }
 
             if (successorNode.isGoalState(goalX, goalY))
             {
@@ -107,7 +110,6 @@ void BFS(int curXPos, int curYPos)
         {
             break; // Finished searching
         }
-
     }
 
     displayPath(currentNode); // Display the solution

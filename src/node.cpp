@@ -12,7 +12,16 @@ Node::Node(Grid gridState, Node* parentNode, Direction moveDir)
     this->moveDir = moveDir; 
 }
 
-int Node::getNodeId()
+/* Constructor for copying a Node object from a pointer */
+Node::Node(Node* parentNode)
+{
+    this->nodeId = parentNode->getNodeId();
+    this->gridState = parentNode->getGrid();
+    this->parentNode = parentNode;
+    this->moveDir = parentNode->getMoveDir();
+}
+
+int Node::getNodeId() const
 {
     return this->nodeId;
 }
