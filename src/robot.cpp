@@ -1,8 +1,8 @@
 #include <iostream>
 #include <libplayerc++/playerc++.h>
 #include <vector>
-#include <queue>
-#include <cmath>
+#include <queue> 
+#include <functional>
 #include <algorithm>
 #include <unistd.h>
 #include "../include/grid.h"
@@ -13,17 +13,25 @@ using namespace PlayerCc;
 double goalX, goalY; // Store goal position
 
 /* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
-double distanceFromGoal(double curXPos, double curYPos)
+const double distanceFromGoal(double curXPos, double curYPos) 
 {
     return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);
 }
 
-struct findClosestNode
+struct findClosestNode : public std::binary_function<Node*, Node*, bool>
 {
-    bool operator() (Node* const &firstNode, Node* const &secondNode)
+    bool operator() (const Node* firstNode, const Node* secondNode) const
     {
         // Return 'true' if firstNode is closer than secondNode
-        return distanceFromGoal(firstNode->getXPos(),firstNode->getYPos()) < distanceFromGoal(secondNode->getXPos(),secondNode->getYPos());
+        if (distanceFromGoal(firstNode->getXPos(),firstNode->getYPos()) < distanceFromGoal(secondNode->getXPos(), secondNode->getYPos()))
+        {
+            return false;
+        }
+
+        else
+        {
+            return true;
+        }
     }
 };
 
@@ -149,7 +157,7 @@ void getUserInput()
         if (std::cin.fail() || goalY < GRID_MIN_Y || goalY > GRID_MAX_Y || occupancyGrid.isObstacle(goalX, goalY))
         {
             std::cin.clear(); std::cin.ignore();
-            std::cerr << "\n\nInvalid goal position. Input must be numerical, a valid grid position and not an obstacle\n\n";
+            std::cerr << "\nInvalid goal position. Input must be numerical, a valid grid position and not an obstacle\n\n";
             continue;
         }
 
@@ -186,7 +194,7 @@ int main(int argc, char *argv[])
 
     pp.SetMotorEnable(true);
 
-    Pathfinding::BestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
+    BestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
 
     /* The main loop that while continue until the robot has reached its destination */
 	/*while(!isGoal(pp.GetXPos(), pp.GetYPos()))

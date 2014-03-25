@@ -40,12 +40,12 @@ Direction Node::getMoveDir()
     return this->moveDir;
 }
 
-int Node::getXPos()
+int Node::getXPos() const
 {
     return this->xPos;
 }
 
-int Node:: getYPos()
+int Node:: getYPos() const
 {
     return this->yPos;
 }
