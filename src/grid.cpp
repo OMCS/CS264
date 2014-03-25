@@ -12,7 +12,7 @@ Grid::Grid()
      */
     std::vector <std::vector <int> > defaultValues = 
     {
-        {0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,2},
+        {0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0},
         {0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0},
         {0,0,0,0,0,0,0,0,0,0,0,1,1,1,0,0,0,0,0,0},
         {0,0,0,0,0,1,1,1,0,0,0,0,1,0,0,0,0,0,0,0},
@@ -73,6 +73,14 @@ std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
     arrayPosition.second = 10 + xPos; // The column
 
     return arrayPosition; // Returns the 2D vector indices of the given x,y coordinate
+}
+
+void Grid::setRobotIdx(int xPos, int yPos)
+{
+    std::pair<int,int> robotIdx = mapToGridArray(xPos, yPos);
+
+    gridContents[robotIdx.first][robotIdx.second] = 2;
+
 }
 
 /* This function returns true if a given coordinate contains an obstacle

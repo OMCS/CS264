@@ -36,7 +36,6 @@ struct findClosestNode : public std::binary_function<Node*, Node*, bool>
     }
 };
 
-
 /* Variables for graph searching */
 Grid occupancyGrid; // Default grid state
 std::priority_queue<Node*, std::vector<Node*>, findClosestNode> frontier; // Holds unexpanded child nodes
@@ -84,16 +83,18 @@ bool nodeExplored(Node* successorNode)
     return false;
 }
 
-/* This function displays the path from the root node to the current node */
-void displayPath(Node* rootNode, Node* currentNode)
+/* This function displays the path from the root node to the current node
+ * takes the vector to add to as a pointer 
+ */
+void calculateRoute(Node* rootNode, Node* currentNode, std::vector<Node*>* calculatedPath)
 {
     std::string pathString;
 
-    std::cout << "Start Grid" << std::endl;
+    /* std::cout << "Start Grid" << std::endl;
     rootNode->getGrid().printGrid();
 
     std::cout << "\n\nEnd Grid" << std::endl;
-    currentNode->getGrid().printGrid();
+    currentNode->getGrid().printGrid(); */
 
     for (Node* n : explored)
     {
@@ -101,21 +102,24 @@ void displayPath(Node* rootNode, Node* currentNode)
         {
             while (n->getParentNode() != NULL) // Traverse upwards until we reach the root node 
             {
-                pathString.append(n->getMoveDirString()); // Append the direction to the string
+                pathString.append(n->getMoveDirString()); // Append the direction to the output string
+                calculatedPath->push_back(n); // Add the node to the path the robot will take
                 n = n->getParentNode(); // Move one level back up the tree
             }
         }
     }
-
-    std::reverse(pathString.begin(), pathString.end());
+    std::reverse(pathString.begin(), pathString.end()); // Reverse the string so it displays start -> goal instead of vice-versa
     std::cout << "\n\nPATH: " << pathString << std::endl;
+
+    std::reverse(calculatedPath->begin(), calculatedPath->end());
 }
 
-void BestFirstSearch(int curXPos, int curYPos)
+std::vector<Node*> BestFirstSearch(int curXPos, int curYPos)
 {
     Node* rootNode = new Node(occupancyGrid, NULL, curXPos, curYPos, NONE); // Create the root node, the parent node is set to NULL
     Node* currentNode = rootNode;
 
+    std::vector<Node*> calculatedPath; // Store the calculated path
     bool pathFound = false;
 
     while (!currentNode->isGoalState(goalX, goalY)) 
@@ -149,7 +153,10 @@ void BestFirstSearch(int curXPos, int curYPos)
         }
     }
 
-    displayPath(rootNode, explored.at(explored.size() - 1)); // Display the solution from the rootNode to the goal node (last node added to the explored list)
+    /* Display and store the calculated route from the start to the goal (last node added to explored list */
+    calculateRoute(rootNode, explored.at(explored.size() - 1), &calculatedPath); 
+
+    return calculatedPath;
 }
 
 bool isGoal(double curXPos, double curYPos) 
@@ -165,7 +172,7 @@ void getUserInput()
     {
         std::cout << "Goal Position (X): ";
         std::cin >> goalX;
-        if (std::cin.fail() || goalX < GRID_MIN_X || goalX > GRID_MAX_X)
+        if (std::cin.fail() || std::cin.eof() || goalX < GRID_MIN_X || goalX > GRID_MAX_X)
         {
             std::cin.clear(); std::cin.ignore();
             std::cerr << "\n\nInvalid goal position. Input must be numerical and a valid grid position\n\n";
@@ -175,7 +182,7 @@ void getUserInput()
         std::cout << "Goal Position (Y): ";
         std::cin >> goalY;
 
-        if (std::cin.fail() || goalY < GRID_MIN_Y || goalY > GRID_MAX_Y || occupancyGrid.isObstacle(goalX, goalY))
+        if (std::cin.fail() || std::cin.eof() || goalY < GRID_MIN_Y || goalY > GRID_MAX_Y || occupancyGrid.isObstacle(goalX, goalY))
         {
             std::cin.clear(); std::cin.ignore();
             std::cerr << "\nInvalid goal position. Input must be numerical, a valid grid position and not an obstacle\n\n";
@@ -183,21 +190,6 @@ void getUserInput()
         }
 
         validInput = true;
-    }
-}
-
-/* This function continues executing the previous command passed to the robot. 
- * It then checks to see if the goal state has been reached before 
- * Allowing the next function to execute
- */
-void continueNavigating(int delayMicroseconds, Position2dProxy &pp)
-{
-    usleep (delayMicroseconds);
-
-    if (isGoal(pp.GetXPos(), pp.GetYPos()))
-    {
-                std::cout << "Goal reached!" << std::endl;
-                std::exit(0);
     }
 }
 
@@ -215,14 +207,35 @@ int main(int argc, char *argv[])
 
     pp.SetMotorEnable(true);
 
-    BestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
+    occupancyGrid.setRobotIdx(pp.GetXPos(), pp.GetYPos());
+
+    std::vector<Node*> calculatedPath = BestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
+    player_pose2d_t newPos;
 
     /* The main loop that while continue until the robot has reached its destination */
-	/*while(!isGoal(pp.GetXPos(), pp.GetYPos()))
+    while(!isGoal(pp.GetXPos(), pp.GetYPos()))
 	{
         robot.Read(); // Update position data
 
-        // FIXME: Move to path found in search results sequentially one square at a time, will need display to output a vector or similar
-	}*/
+        for (Node* n : calculatedPath)
+        {
+            newPos.px = n->getXPos();
+            newPos.py = n->getYPos();
+
+            std::cout << n->getMoveDirString() << std::endl;
+
+            pp.GoTo(newPos);
+
+            if (isGoal(pp.GetXPos(), pp.GetYPos()))
+            {
+                std::cout << "Moved to Goal!" << std::endl;
+                break;
+            }
+
+            usleep(6000000); // Allow some time for the robot to move to its new position
+        }
+	}
+
+    return 0;
 }
 
