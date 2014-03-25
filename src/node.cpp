@@ -50,26 +50,26 @@ int Node:: getYPos() const
     return this->yPos;
 }
 
+/* This function returns the instance move direction as a string for output purposes */
 std::string Node::getMoveDirString()
 {
-    std::string moveDirStr;
+    std::string moveDirStr = "";
     
     switch (this->moveDir)
     {
         case UP:
-            moveDirStr = "UP";
+            moveDirStr = "U";
             break;
         case DOWN:
-            moveDirStr = "DOWN";
+            moveDirStr = "D";
             break;
         case LEFT:
-            moveDirStr = "LEFT";
+            moveDirStr = "L";
             break;
         case RIGHT:
-            moveDirStr = "RIGHT";
+            moveDirStr = "R";
             break;
         case NONE:
-            moveDirStr = "NONE";
             break;
     }
 

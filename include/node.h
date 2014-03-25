@@ -28,7 +28,3 @@ class Node
         bool isGoalState(int xPos, int yPos);
 };
 
-/* Overload equality operators for use in std::find */
-inline bool operator == (const Node &n1, const Node &n2) {return n1.getNodeId() == n2.getNodeId();}
-inline bool operator != (const Node &n1, const Node &n2) {return n1.getNodeId() != n2.getNodeId();}
-

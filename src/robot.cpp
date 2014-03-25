@@ -12,12 +12,13 @@ using namespace PlayerCc;
 
 double goalX, goalY; // Store goal position
 
-/* This function returns the absolute distance to the goal using grid coordinates, this could be used in a path cost function */
+/* This function returns the absolute distance to the goal using grid coordinates, measure of path cost */
 const double distanceFromGoal(double curXPos, double curYPos) 
 {
     return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);
 }
 
+/* This operator determines which of two given nodes is closer to the goal position, dereferences the Node* pointers */
 struct findClosestNode : public std::binary_function<Node*, Node*, bool>
 {
     bool operator() (const Node* firstNode, const Node* secondNode) const
@@ -34,6 +35,7 @@ struct findClosestNode : public std::binary_function<Node*, Node*, bool>
         }
     }
 };
+
 
 /* Variables for graph searching */
 Grid occupancyGrid; // Default grid state
@@ -66,6 +68,23 @@ std::vector<Node*> spawnSuccessors(Node* parentNode, int curXPos, int curYPos)
     return successorList;
 }
 
+/* This function returns true if a node with the same x and y position already exists in the explored list */
+bool nodeExplored(Node* successorNode)
+{
+    std::vector<Node*>::iterator it; // Create iterator for Node* container 
+
+    for ( it = explored.begin(); it != explored.end(); ++it)
+    {
+        if ( (*it)->getXPos() == successorNode->getXPos() && (*it)->getYPos() == successorNode->getYPos())
+        {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/* This function displays the path from the root node to the current node */
 void displayPath(Node* rootNode, Node* currentNode)
 {
     std::string pathString;
@@ -82,12 +101,13 @@ void displayPath(Node* rootNode, Node* currentNode)
         {
             while (n->getParentNode() != NULL) // Traverse upwards until we reach the root node 
             {
-                pathString.append(n->getMoveDirString() + " "); // Append the direction to the string
+                pathString.append(n->getMoveDirString()); // Append the direction to the string
                 n = n->getParentNode(); // Move one level back up the tree
             }
         }
     }
 
+    std::reverse(pathString.begin(), pathString.end());
     std::cout << "\n\nPATH: " << pathString << std::endl;
 }
 
@@ -106,7 +126,8 @@ void BestFirstSearch(int curXPos, int curYPos)
 
         for (Node* successorNode : successors)
         {
-            if (std::find(explored.begin(), explored.end(), successorNode) == explored.end())
+            // If the node has not already been explored, add it to the nodes to check
+            if (!nodeExplored(successorNode))
             {
                 frontier.push(successorNode);
             }
@@ -144,7 +165,7 @@ void getUserInput()
     {
         std::cout << "Goal Position (X): ";
         std::cin >> goalX;
-        if (std::cin.fail() || goalX < GRID_MIN_Y || goalX > GRID_MAX_X)
+        if (std::cin.fail() || goalX < GRID_MIN_X || goalX > GRID_MAX_X)
         {
             std::cin.clear(); std::cin.ignore();
             std::cerr << "\n\nInvalid goal position. Input must be numerical and a valid grid position\n\n";
