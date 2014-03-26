@@ -12,6 +12,7 @@
 *.la
 *.a
 
+INSTRUCTIONS.txt
 bin/*
 .DS_Store
 
