@@ -260,6 +260,7 @@ int main(int argc, char *argv[])
 
         /* Recalculate position and run the search again */
         robot.Read();
+        calculatedPath.clear();
         calculatedPath = bestFirstSearch(pp.GetXPos(), pp.GetYPos());
 	}
 
