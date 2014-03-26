@@ -91,7 +91,7 @@ bool Grid::isObstacle(int xPos, int yPos)
 {
     std::pair<int,int> gridCell = mapToGridArray(xPos, yPos);
 
-    return (gridContents[gridCell.first][gridCell.second] == 1);
+    return (gridContents[gridCell.first][gridCell.second] == 1 || gridContents[gridCell.first][gridCell.second] == 2);
 }
 
 /* This function returns a boolean expression which indicates whether a robot can move in a certain direction */

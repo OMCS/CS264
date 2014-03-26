@@ -4,6 +4,7 @@
 #include <queue> 
 #include <functional>
 #include <algorithm>
+#include <set>
 #include <unistd.h>
 #include "../include/grid.h"
 #include "../include/node.h"
@@ -18,7 +19,9 @@ const double distanceFromGoal(double curXPos, double curYPos)
     return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);
 }
 
-/* This operator determines which of two given nodes is closer to the goal position, dereferences the Node* pointers */
+/* This operator determines which of two given nodes is closer to the goal position, dereferences the Node* pointers
+ * used to order the priority queue for the best-first search
+ */
 struct findClosestNode : public std::binary_function<Node*, Node*, bool>
 {
     bool operator() (const Node* firstNode, const Node* secondNode) const
@@ -114,8 +117,12 @@ void calculateRoute(Node* rootNode, Node* currentNode, std::vector<Node*>* calcu
     std::reverse(calculatedPath->begin(), calculatedPath->end());
 }
 
-std::vector<Node*> BestFirstSearch(int curXPos, int curYPos)
+std::vector<Node*> bestFirstSearch(int curXPos, int curYPos)
 {
+    /* Clear the data structures */
+    explored.clear();
+    frontier = std::priority_queue<Node*, std::vector<Node*>, findClosestNode>(); 
+
     Node* rootNode = new Node(occupancyGrid, NULL, curXPos, curYPos, NONE); // Create the root node, the parent node is set to NULL
     Node* currentNode = rootNode;
 
@@ -185,7 +192,7 @@ void getUserInput()
         if (std::cin.fail() || std::cin.eof() || goalY < GRID_MIN_Y || goalY > GRID_MAX_Y || occupancyGrid.isObstacle(goalX, goalY))
         {
             std::cin.clear(); std::cin.ignore();
-            std::cerr << "\nInvalid goal position. Input must be numerical, a valid grid position and not an obstacle\n\n";
+            std::cerr << "\nInvalid goal position. Input must be numerical, a valid grid position and unoccupied\n\n";
             continue;
         }
 
@@ -198,7 +205,7 @@ int main(int argc, char *argv[])
     getUserInput();
 
 	PlayerClient    robot("localhost");
-	RangerProxy      sp(&robot,0);
+	RangerProxy      rp(&robot,0);
 	Position2dProxy pp(&robot,0);
 
     pp.SetMotorEnable(false);
@@ -209,8 +216,9 @@ int main(int argc, char *argv[])
 
     occupancyGrid.setRobotIdx(pp.GetXPos(), pp.GetYPos());
 
-    std::vector<Node*> calculatedPath = BestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
-    player_pose2d_t newPos;
+    std::vector<Node*> calculatedPath = bestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
+
+    player_pose2d_t newPos; // Stores the next position
 
     /* The main loop that while continue until the robot has reached its destination */
     while(!isGoal(pp.GetXPos(), pp.GetYPos()))
@@ -221,21 +229,46 @@ int main(int argc, char *argv[])
         {
             newPos.px = n->getXPos();
             newPos.py = n->getYPos();
+            
+            /** Sonar handling
+             double turnrate;
 
-            std::cout << n->getMoveDirString() << std::endl;
+            if ( (rp[0] + rp[1] + rp[2]) < (rp[5] + rp[6] + rp[7]) ) 
+            {
+                turnrate = dtor(-60); // Turn rates decided after experimentation
+            } 
+
+            else 
+            {
+                turnrate = dtor(40);
+            }
+
+            if (rp[3] < 1.2 || rp[4] < 1.2) 
+            {
+                pp.SetSpeed(-0.700, turnrate); // Move backwards
+                usleep(300000);
+            } 
+
+            std::cout << n->getMoveDirString() << std::endl; 
+             
+             **/
 
             pp.GoTo(newPos);
 
             if (isGoal(pp.GetXPos(), pp.GetYPos()))
             {
-                std::cout << "Moved to Goal!" << std::endl;
                 break;
             }
 
-            usleep(6000000); // Allow some time for the robot to move to its new position
+            //usleep(2000000); // Allow some time for the robot to move to its new position
         }
+
+        /* Recalculate position and run the search again */
+        robot.Read();
+        calculatedPath = bestFirstSearch(pp.GetXPos(), pp.GetYPos());
 	}
 
+    std::cout << "Moved to Goal!" << std::endl;
     return 0;
 }
 
