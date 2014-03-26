@@ -1,11 +1,8 @@
-#include <iostream>
-#include <libplayerc++/playerc++.h>
-#include <vector>
+#include <iostream> // std::cout
+#include <libplayerc++/playerc++.h> // Player/Stage Functions
+#include <vector> 
 #include <queue> 
-#include <functional>
-#include <algorithm>
 #include <set>
-#include <unistd.h>
 #include "../include/grid.h"
 #include "../include/node.h"
 
@@ -26,7 +23,7 @@ struct findClosestNode : public std::binary_function<Node*, Node*, bool>
 {
     bool operator() (const Node* firstNode, const Node* secondNode) const
     {
-        // Return 'true' if firstNode is closer than secondNode
+        /* Return 'true' if firstNode is closer than secondNode */
         if (distanceFromGoal(firstNode->getXPos(),firstNode->getYPos()) < distanceFromGoal(secondNode->getXPos(), secondNode->getYPos()))
         {
             return false;
@@ -93,11 +90,11 @@ void calculateRoute(Node* rootNode, Node* currentNode, std::vector<Node*>* calcu
 {
     std::string pathString;
 
-    /* std::cout << "Start Grid" << std::endl;
-    rootNode->getGrid().printGrid();
+    //std::cout << "Start Grid" << std::endl;
+    //rootNode->getGrid().printGrid();
 
-    std::cout << "\n\nEnd Grid" << std::endl;
-    currentNode->getGrid().printGrid(); */
+    //std::cout << "\n\nEnd Grid" << std::endl;
+    //currentNode->getGrid().printGrid(); 
 
     for (Node* n : explored)
     {
@@ -114,7 +111,7 @@ void calculateRoute(Node* rootNode, Node* currentNode, std::vector<Node*>* calcu
     std::reverse(pathString.begin(), pathString.end()); // Reverse the string so it displays start -> goal instead of vice-versa
     std::cout << "\n\nPATH: " << pathString << std::endl;
 
-    std::reverse(calculatedPath->begin(), calculatedPath->end());
+    std::reverse(calculatedPath->begin(), calculatedPath->end()); // Reverse vector storing the path in a similar mannner
 }
 
 std::vector<Node*> bestFirstSearch(int curXPos, int curYPos)
@@ -249,9 +246,9 @@ int main(int argc, char *argv[])
                 usleep(300000);
             } 
 
-            std::cout << n->getMoveDirString() << std::endl; 
-             
-             **/
+            */
+
+            //std::cout << n->getMoveDirString() << std::endl; 
 
             pp.GoTo(newPos);
 
@@ -259,8 +256,6 @@ int main(int argc, char *argv[])
             {
                 break;
             }
-
-            //usleep(2000000); // Allow some time for the robot to move to its new position
         }
 
         /* Recalculate position and run the search again */

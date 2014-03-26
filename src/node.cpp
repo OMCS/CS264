@@ -1,4 +1,3 @@
-#include<iostream>
 #include <string>
 #include "../include/grid.h"
 #include "../include/node.h"
