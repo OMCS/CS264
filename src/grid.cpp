@@ -110,6 +110,7 @@ bool Grid::adjacentToObstacle(int xPos, int yPos)
         return true;
     }
 
+    /* Check diagonally for obstacles */
     if (isObstacle(xPos +1, yPos + 1) || isObstacle(xPos -1, yPos - 1) || isObstacle (xPos - 1, yPos + 1) || isObstacle(xPos + 1, yPos - 1))
     {
         return true;

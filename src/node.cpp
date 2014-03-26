@@ -17,7 +17,7 @@ Node::Node(Grid gridState, Node* parentNode, int pathCost, int xPos, int yPos, D
     /* Give nodes that are adjacent to obstacles a lower priority in the list */
     if (this->gridState.adjacentToObstacle(this->xPos,this->yPos))
     {
-        this->pathCost = pathCost + 5;
+        this->pathCost = pathCost + 5; // Enough that the search will prioritise positions with no adjacent obstacles
     }
 
     else
