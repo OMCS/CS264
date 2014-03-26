@@ -10,17 +10,19 @@ class Node
 
         Node* parentNode;
         Grid gridState;
+        int pathCost;
         int xPos;
         int yPos;
         Direction moveDir;
 
     public:
-        Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveDir); // Standard constructor
+        Node(Grid gridState, Node* parentNode, int pathCost, int xPos, int yPos, Direction moveDir); // Standard constructor
         ~Node(); // Destructor 
 
         int getNodeId() const;
         Node* getParentNode();
         Grid getGrid();
+        int getPathCost() const;
         int getXPos() const;
         int getYPos() const;
         Direction getMoveDir();

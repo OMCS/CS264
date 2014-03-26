@@ -3,6 +3,7 @@
 #include <vector> 
 #include <queue> 
 #include <set>
+#include <unistd.h>
 #include "../include/grid.h"
 #include "../include/node.h"
 
@@ -10,21 +11,22 @@ using namespace PlayerCc;
 
 double goalX, goalY; // Store goal position
 
-/* This function returns the absolute distance to the goal using grid coordinates, measure of path cost */
+/* This function returns the absolute distance to the goal using grid coordinates, can be used as a heuristic */
 const double distanceFromGoal(double curXPos, double curYPos) 
 {
     return std::abs(curXPos - goalX) + std::abs(curYPos - goalY);
 }
 
 /* This operator determines which of two given nodes is closer to the goal position, dereferences the Node* pointers
- * used to order the priority queue for the best-first search
+ * used to order the priority queue for the best-first search / A* search hybrid
  */
-struct findClosestNode : public std::binary_function<Node*, Node*, bool>
+struct findBestNode : public std::binary_function<Node*, Node*, bool>
 {
     bool operator() (const Node* firstNode, const Node* secondNode) const
     {
         /* Return 'true' if firstNode is closer than secondNode */
-        if (distanceFromGoal(firstNode->getXPos(),firstNode->getYPos()) < distanceFromGoal(secondNode->getXPos(), secondNode->getYPos()))
+        if (distanceFromGoal(firstNode->getXPos(),firstNode->getYPos()) + firstNode->getPathCost() < 
+                distanceFromGoal(secondNode->getXPos(), secondNode->getYPos()) + secondNode->getPathCost())
         {
             return false;
         }
@@ -32,13 +34,13 @@ struct findClosestNode : public std::binary_function<Node*, Node*, bool>
         else
         {
             return true;
-        }
+        } 
     }
 };
 
 /* Variables for graph searching */
 Grid occupancyGrid; // Default grid state
-std::priority_queue<Node*, std::vector<Node*>, findClosestNode> frontier; // Holds unexpanded child nodes
+std::priority_queue<Node*, std::vector<Node*>, findBestNode> frontier; // Holds unexpanded child nodes
 std::vector<Node*> explored;  // Holds explored nodes
 
 std::vector<Node*> spawnSuccessors(Node* parentNode, int curXPos, int curYPos)
@@ -60,7 +62,9 @@ std::vector<Node*> spawnSuccessors(Node* parentNode, int curXPos, int curYPos)
              */
             std::pair<int,int> newCoordinates = newGridState.moveRobot(parentNode->getXPos(), parentNode->getYPos(), moveDir); // newCoordinates.first = x, second = y
 
-            successorList.push_back(new Node (newGridState, parentNode, newCoordinates.first, newCoordinates.second, moveDir)); // moveDir is defined in grid.h as an enumerated value
+            successorList.push_back(new Node 
+            (newGridState, parentNode, parentNode->getPathCost(), newCoordinates.first, newCoordinates.second, moveDir)
+            ); // moveDir is defined in grid.h as an enumerated value
         }
     }
 
@@ -90,6 +94,8 @@ void calculateRoute(Node* rootNode, Node* currentNode, std::vector<Node*>* calcu
 {
     std::string pathString;
 
+    pathString.clear();
+
     //std::cout << "Start Grid" << std::endl;
     //rootNode->getGrid().printGrid();
 
@@ -114,13 +120,16 @@ void calculateRoute(Node* rootNode, Node* currentNode, std::vector<Node*>* calcu
     std::reverse(calculatedPath->begin(), calculatedPath->end()); // Reverse vector storing the path in a similar mannner
 }
 
-std::vector<Node*> bestFirstSearch(int curXPos, int curYPos)
+std::vector<Node*> graphSearch(int curXPos, int curYPos)
 {
     /* Clear the data structures */
     explored.clear();
-    frontier = std::priority_queue<Node*, std::vector<Node*>, findClosestNode>(); 
+    frontier = std::priority_queue<Node*, std::vector<Node*>, findBestNode>(); 
 
-    Node* rootNode = new Node(occupancyGrid, NULL, curXPos, curYPos, NONE); // Create the root node, the parent node is set to NULL
+    /* Create the root node, the parent node is set to NULL
+     * of the form: gridState, parentNode, pathCost, current x position, current y position, move direction
+     */
+    Node* rootNode = new Node(occupancyGrid, NULL, 0, curXPos, curYPos, NONE); 
     Node* currentNode = rootNode;
 
     std::vector<Node*> calculatedPath; // Store the calculated path
@@ -213,7 +222,7 @@ int main(int argc, char *argv[])
 
     occupancyGrid.setRobotIdx(pp.GetXPos(), pp.GetYPos());
 
-    std::vector<Node*> calculatedPath = bestFirstSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
+    std::vector<Node*> calculatedPath = graphSearch(pp.GetXPos(), pp.GetYPos()); // Run a search to find a path to the goal position
 
     player_pose2d_t newPos; // Stores the next position
 
@@ -250,7 +259,9 @@ int main(int argc, char *argv[])
 
             //std::cout << n->getMoveDirString() << std::endl; 
 
+            usleep(1000000);
             pp.GoTo(newPos);
+            usleep(1000000);
 
             if (isGoal(pp.GetXPos(), pp.GetYPos()))
             {
@@ -261,7 +272,7 @@ int main(int argc, char *argv[])
         /* Recalculate position and run the search again */
         robot.Read();
         calculatedPath.clear();
-        calculatedPath = bestFirstSearch(pp.GetXPos(), pp.GetYPos());
+        calculatedPath = graphSearch(pp.GetXPos(), pp.GetYPos());
 	}
 
     std::cout << "Moved to Goal!" << std::endl;

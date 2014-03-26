@@ -4,7 +4,8 @@
 
 int Node::nodeCount = 0;
 
-Node::Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveDir)
+/* Constructor allows setting grid state, parent node, current path cost, current position and the direction the move was in */
+Node::Node(Grid gridState, Node* parentNode, int pathCost, int xPos, int yPos, Direction moveDir)
 { 
     this->nodeId = nodeCount++;
     this->gridState = gridState;
@@ -12,6 +13,17 @@ Node::Node(Grid gridState, Node* parentNode, int xPos, int yPos, Direction moveD
     this->moveDir = moveDir; 
     this->xPos = xPos;
     this->yPos = yPos; 
+
+    /* Give nodes that are adjacent to obstacles a lower priority in the list */
+    if (this->gridState.adjacentToObstacle(this->xPos,this->yPos))
+    {
+        this->pathCost = pathCost + 5;
+    }
+
+    else
+    {
+        this->pathCost = pathCost + 1;
+    }
 }
 
 Node::~Node()
@@ -34,9 +46,9 @@ Grid Node::getGrid()
     return this->gridState;
 }
 
-Direction Node::getMoveDir()
+int Node::getPathCost() const
 {
-    return this->moveDir;
+    return this->pathCost;
 }
 
 int Node::getXPos() const
@@ -47,6 +59,11 @@ int Node::getXPos() const
 int Node:: getYPos() const
 {
     return this->yPos;
+}
+
+Direction Node::getMoveDir()
+{
+    return this->moveDir;
 }
 
 /* This function returns the instance move direction as a string for output purposes */

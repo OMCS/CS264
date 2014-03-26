@@ -28,6 +28,7 @@ class Grid
         static std::pair<int,int> mapToGridArray(int xPos, int yPos); // Defined as static because this function doesn't require a grid instance
         void setRobotIdx(int xPos, int yPos);
         bool isObstacle(int xPos, int yPos); 
+        bool adjacentToObstacle(int xPos, int yPos);
         bool canMove(int xPos, int yPos, Direction moveDir);
         std::pair<int,int> moveRobot(int curXPos, int curYPos, Direction moveDir);
         void printGrid();

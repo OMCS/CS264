@@ -75,6 +75,7 @@ std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
     return arrayPosition; // Returns the 2D vector indices of the given x,y coordinate
 }
 
+/* This function sets the inital grid position of the robot so that the robot can navigate from any start position */
 void Grid::setRobotIdx(int xPos, int yPos)
 {
     std::pair<int,int> robotIdx = mapToGridArray(xPos, yPos);
@@ -92,6 +93,29 @@ bool Grid::isObstacle(int xPos, int yPos)
     std::pair<int,int> gridCell = mapToGridArray(xPos, yPos);
 
     return (gridContents[gridCell.first][gridCell.second] == 1 || gridContents[gridCell.first][gridCell.second] == 2);
+}
+
+/* This function returns true if a given coordinate is ADJACENT to an obstacle
+ * the search algorithm will give these a lower priority to prevent collisions
+ */
+bool Grid::adjacentToObstacle(int xPos, int yPos)
+{
+    if (xPos == GRID_MIN_X || xPos == GRID_MAX_X || yPos == GRID_MIN_Y || yPos == GRID_MAX_Y)
+    {
+        return true;
+    }
+
+    if (isObstacle(xPos + 1, yPos) || isObstacle(xPos - 1, yPos) || isObstacle(xPos, yPos + 1) || isObstacle(xPos, yPos - 1))
+    {
+        return true;
+    }
+
+    if (isObstacle(xPos +1, yPos + 1) || isObstacle(xPos -1, yPos - 1) || isObstacle (xPos - 1, yPos + 1) || isObstacle(xPos + 1, yPos - 1))
+    {
+        return true;
+    }
+
+    return false;
 }
 
 /* This function returns a boolean expression which indicates whether a robot can move in a certain direction */
