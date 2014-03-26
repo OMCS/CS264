@@ -174,7 +174,7 @@ std::vector<Node*> graphSearch(int curXPos, int curYPos)
 
 bool isGoal(double curXPos, double curYPos) 
 {
-    return (distanceFromGoal(curXPos, curYPos) < 0.10); // If combined distance from goal is a negligible value
+    return (distanceFromGoal(curXPos, curYPos) < 0.5); // If combined distance from goal is a negligible value
 }
 
 void getUserInput()
@@ -259,7 +259,7 @@ int main(int argc, char *argv[])
 
             //std::cout << n->getMoveDirString() << std::endl; 
 
-            usleep(1000000);
+            usleep(1000000); // Hold movement for 1 second
             pp.GoTo(newPos);
             usleep(1000000);
 
