@@ -190,9 +190,10 @@ One of the crucial functions required for any movement was the ability to map th
 
 Below you can see the basic algorithm, example output to check for correctness and my C\texttt{++} implementation which returns a \texttt{<std::pair>}.
 
-    \begin{minipage}[c]{.5\textwidth}
+\begin{mdframed}
+    \begin{minipage}[t]{.5\textwidth}
+            \vspace{0.2cm}
         \small
-    \begin{mdframed}
         \begin{algorithm}[H]
             \DontPrintSemicolon
             \SetAlgoLined
@@ -207,13 +208,15 @@ Below you can see the basic algorithm, example output to check for correctness a
                 \hspace{0.6cm}\Return indexX, indexY\;
         \end{algorithm}
         \normalsize
-    \end{mdframed}
     \end{minipage}
-    \begin{minipage}[c]{.6\textwidth}
-        \begin{mdframed}
-        \end{mdframed}
-        TESTING
+    \begin{minipage}[t]{.5\textwidth}
+            \small
+            \vspace{0.2cm}
+            \verbatiminput{/dev/shm/foo.txt}
+            \normalsize
     \end{minipage}
+\end{mdframed}
+
 \lstset{caption={Mapping Function}}
 \begin{lstlisting}
 std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
@@ -287,25 +290,39 @@ if (rp[3] < 1 || rp[4] < 1) // An object is detected in front of the robot
 \section{Development}
 % basic intro
 \subsection{Early Ideas}
+Early on in the development process I looked at using a very crude reactive approach by simply having the robot check sonars and randomly move about the environment. This was effective but did not involve any intelligent motion or significant robotics knowledge. 
+
+I discovered that the \textit{Player/Stage} API provided a \texttt{GoTo} function as a member of the \texttt{PositionProxy} class. This function would allow me to input a position using the \texttt{player2d\_pose\_t} type (a simple pair like structure) and from there the robot would navigate to this position on the grid.
+
+This seemed like a very simple solution - avoid obstacles with the sonar and move towards the goal position. After running some tests I concluded that the \texttt{GoTo} function was not intelligent and would simply move to the position in a straight line. I also discovered that commands sent to the robot are executed until a new command is received.
+
+What this meant was that I would have to repeatedly send \texttt{GoTo} commands and pause for the sonar data to be read, very inelegant. Because there was no intelligence the robot would often come too close to obstacles and get stuck when trying to turn or become caught in a loop where it moved towards an obstacle, backed away and moved towards it again.
+
+It was clear I would need to try a different approach. I I discovered that the \texttt{usleep} function provided in \textit{cstdlib} would allow commands sent to the robot to be carried out for a length of time before the new command was sent - this seemed useful but did not prevent issues where a robot would move towards an obstacle, and be asleep while the sonar should have been picking up new data and sending an avoidance command.
+
+This could have been fixed by implementing some sort of threading capability or using an interrupt but it seemed less about robotics and more about C\texttt{++} features so I decided on a different perspective.
+
+I began by attempting to implement a simple Breadth-First Search which required the creation of a Node class. I moved everything around in memory without sending commands to the robot yet in order to see if this was feasible. It worked quite well and I decided to continue with the deliberative approach, however the breadth-first search proved extremely slow when moving away from the robot
 % fully reactive, looking into GoTo - issues, discovered usleep() - BFS
 \subsection{Final Implementation}
-% BFS became Be-Fi-Se became A* when realised that needed path cost to stop it 'hugging' obstacles - had to implement path cost, then had to add checks for both diagonal and etc in isAdjacentToObstacle()
+% BFS became Be-Fi-Se became A* when realised that needed path cost to stop it 'hugging' obstacles - had to implement path cost, then had to add checks for both diagonal and etc in isAdjacentToObstacle() because otherwise would just hit things. Also had to make isGoal slightly less precise because otherwise it would travel to the very edge of a grid cell and hit obstacles. 
 \section{Testing}
 % few screenshots here 
 \section{Real Robots}
 % ignored goto, picture of pioneer here
 \section{Conclusions}
 % sim nowhere near like real life, importance of sleep statements
-\subsection{Evaluation} % Slightly buggy, more testing, sometimes stops before goal state - if input == currentPos then crash
+Overall this project proved quite challenging because applying AI techniques to the environment is not as 'clean' as it is when dealing with a structure that exists only in memory.
+
+\subsection{Software Evaluation} % Slightly buggy, more testing, sometimes stops before goal state - if input == currentPos then crash
+There are a few bugs in my implementation but nothing which detracts from the ability to navigate the occupancy grid successfully. Occasionally the robot will stop just short of the goal with a \texttt{PlayrCc::PlayerError} - I have not ascertained whether this is a bug with my software or something else.
+
+Additionally, as soon as the \texttt{PositionProxy} object is instantiated, the \textbf{simulated} robot will begin to move. In order to make it wait for input. I don't instantiate it until after the user has input the goal coordinates. 
+
+This causes a crash if the goal coordinates equal the start coordinates with no way of checking because \texttt{getXPos()} and so forth are not available yet. 
+
+To fix this I could have the robot move in circles, however the real robot does not exhibit this problem due to \texttt{setMotorEnable(false)} being called.
 \section{References}
-
-%\begin{wrapfigure}{r}{0.5\textwidth}
-%    \begin{center}
-%            \includegraphics[width=0.47\textwidth]{images/tree.png}
-%                \caption{Components of a search tree \hyperref[refs]{[2]}}
-%            \end{center}
-%        \end{wrapfigure}
-
 
 %[1] \textit{} [Online]. Available:\\ 
 %    \url{}
