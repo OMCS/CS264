@@ -10,8 +10,54 @@
 \usepackage{verbatim} % Enables insertion of text files
 \usepackage{wrapfig} % Wrapped figures
 \usepackage{algorithm2e} % Algorithms
+\usepackage{tikz} % Drawing
 \usepackage{verbatim} % Embed text files
 \usepackage[colorlinks=true,urlcolor=blue,linkcolor=blue,linktocpage=true]{hyperref} % Hypertext referencing
+
+\usetikzlibrary{decorations.pathmorphing,calc,shadows.blur,shadings}
+\pgfmathsetseed{1} % To have predictable results
+% Define a background layer, in which the parchment shape is drawn
+\pgfdeclarelayer{background}
+\pgfsetlayers{background,main}
+
+% This is the base for the fractal decoration. It takes a random point between the start and end, and
+% raises it a random amount, thus transforming a segment into two, connected at that raised point
+% This decoration can be applied again to each one of the resulting segments and so on, in a similar
+% way of a Koch snowflake.
+\pgfdeclaredecoration{irregular fractal line}{init}
+{
+  \state{init}[width=\pgfdecoratedinputsegmentremainingdistance]
+  {
+    \pgfpathlineto{\pgfpoint{random*\pgfdecoratedinputsegmentremainingdistance}{(random*\pgfdecorationsegmentamplitude-0.02)*\pgfdecoratedinputsegmentremainingdistance}}
+    \pgfpathlineto{\pgfpoint{\pgfdecoratedinputsegmentremainingdistance}{0pt}}
+  }
+}
+
+% define some styles
+\tikzset{
+   paper/.style={draw=black!10, blur shadow, shade=bilinear interpolation,
+                 lower left=black!20, upper left=black!15, upper right=white, lower right=black!10},
+   irregular border/.style={decoration={irregular fractal line, amplitude=0.2},
+           decorate,
+     },
+   ragged border/.style={ decoration={random steps, segment length=7mm, amplitude=2mm},
+           decorate,
+   }
+}
+
+% Macro to draw the shape behind the text, when it fits completly in the
+% page
+\def\tornpaper#1{
+\tikz{
+  \node[inner sep=1em] (A) {#1};  % Draw the text of the node
+  \begin{pgfonlayer}{background}  % Draw the shape behind
+  \fill[paper] % recursively decorate the bottom border
+        decorate[irregular border]{decorate{decorate{decorate{decorate[ragged border]{
+        ($(A.south east) - (0, random*5mm)$) -- ($(A.south west) - (0, random*5mm)$)
+        }}}}}
+        -- (A.north west) -- (A.north east) -- cycle;
+  \end{pgfonlayer}}
+}
 
 \usepackage{enumitem}
 \newlist{arrowlist}{itemize}{1}
@@ -66,8 +112,8 @@
 
 \begin{document}
 
+\includepdf{title/assign_cover.pdf} % Coversheet
 \includepdf{title/title_page.pdf} % Include title page
-%\includepdf{assign_cover.pdf} % Coversheet
 
 \thispagestyle{empty} % Clear page style
 \tableofcontents % TOC
@@ -89,12 +135,13 @@ My implementation focused on the following aspects:
 
 In addition to this, this program was tested on a real robot and results observed. The pathfinding implementation is deliberative as opposed to reactive - my justification for this is that sonars are unnecessary when a full map of the environment has already been achieved. I familiarised myself with both approaches during the design phase.
 
-Throughout the project, source control was used - both for backup purposes and to provide a record of progress.
+Throughout the project, source control was used - both for backup purposes and to provide a record of progress made during the development of my solution.
 
 \scriptsize
-\begin{mdframed}
-\verbatiminput{../../Misc/Commit_History.txt}
-\end{mdframed}
+\noindent
+\tornpaper{
+    \parbox{\textwidth}{\verbatiminput{../../Misc/Commit_History.txt}}
+}
 \normalsize
 
 \section{Player/Stage}
@@ -104,11 +151,70 @@ Throughout the project, source control was used - both for backup purposes and t
 
 For this reason, as well as personal preference, C++ was used to implement my navigation system.
 \section{Representation}
-The first step to solving the issue of navigating the grid was to determine how best to represent states within the program. I decided to use a \texttt{grid} class to represent the occupancy grid and also need a node class to store potential states for use in a graph search. 
+The first step to solving the issue of navigating the grid was to determine how best to represent states within the program. I decided to use a \texttt{grid} class to represent the occupancy grid and there was also a need for a node class to store potential states for use in a graph search. 
 \subsection{Grid Class}
-The grid class provides key functionality, it stores the occupancy grid and provides several auxiliary functions to detect 
+The \textbf{Grid} class provides key functionality. It stores the occupancy grid and provides several auxiliary functions to detect obstacles as well as the critically important \texttt{mapToGridArray} function which converts between $x,y$ coordinates and indices in a two-dimensional \textit{vector} of type \textit{int} values. 
+
+This function is crucial and is used throughout the program whenever a conversion is needed between apparent position on the screen and the internal grid. This will be discussed in more detail in a later section.
 \subsection{Node Class}
+The \textbf{Node} class provides all the required functionality to describe a state during navigation. The following table describes the attributes stored in a node object.
+\begin{table}
+\centering
+\scriptsize
+\begin{tabular}{|c|c|l|}
+    \hline
+    \multicolumn{1}{|c|}{\textbf{Attribute}} & \multicolumn{1}{c|}{\textbf{Type}} & \multicolumn{1}{c|}{\textbf{Purpose}} \\
+    \hline
+    nodeCount & \texttt{static int} & Class-side variable that is updated in the constructor with every new \texttt{Node} instance\\
+    \hline
+    nodeId & \texttt{int} & Uniquely identifies a Node, increments \texttt{nodeCount} in every new instance\\
+    \hline
+    parentNode & \texttt{Node*} & Pointer to the parent node, allows tree traversal from leaf to root node \\
+    \hline
+    gridState & \texttt{Grid} & Instance of a \texttt{Grid},  the current grid state in its entirety\\
+    \hline
+    pathCost & \texttt{int} & Current path cost, for positions not adjacent to obstacles this will be \texttt{parentNode->getPathCost() + 1} \\
+    \hline
+    xPos & \texttt{int} & Current \textbf{x} coordinate of robot on grid, one part of uniquely identifying a \texttt{Node} \\
+    \hline
+    yPos & \texttt{int} & Current \textbf{y} coordinate of robot on grid, second part of unique identifier\\
+    \hline
+    moveDir & \texttt{Direction} & Instance of the \texttt{Direction} enumerated value - see section on movement\\
+    \hline
+\end{tabular}
+\end{table}
+\normalsize
+Nodes are created and stored as required, once the path from the start to the goal has been found, The path is reversed and 'replayed' by giving movement commands to the robot sequentially.
 \subsection{Occupancy Grid Mapping}
+One of the crucial functions required for any movement was the ability to map the robot's apparent position in the simulator to an index in the internal vector. After some experimentation the equation for the position was discovered and the algorithm was implemented. 
+
+Below you can see the basic algorithm, example output to check for correctness and my C\texttt{++} implementation which returns a \texttt{<std::pair>}.
+
+    \begin{minipage}[c]{.5\textwidth}
+        \small
+    \begin{mdframed}
+        \begin{algorithm}[H]
+            \DontPrintSemicolon
+            \SetAlgoLined
+            \KwData{Grid Coordinates of form x,y}
+            \KwResult{Indices for position in 2D \textit{vector}}
+                \hspace{0.6cm}Let gridX = input x coordinate\\
+                \hspace{0.5cm} Let gridY = input y coordinate\\
+                \vspace{0.3cm}
+                \hspace{0.5cm} Let indexX := $10\:+$ gridX\\
+                \hspace{0.5cm} Let indexY := $9\:-$ gridY\\
+                \vspace{0.3cm}
+                \hspace{0.6cm}\Return indexX, indexY\;
+        \end{algorithm}
+        \normalsize
+    \end{mdframed}
+    \end{minipage}
+    \begin{minipage}[c]{.6\textwidth}
+        \begin{mdframed}
+        \end{mdframed}
+        TESTING
+    \end{minipage}
+\lstset{caption={Mapping Function}}
 \begin{lstlisting}
 std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
 {
@@ -117,28 +223,80 @@ std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
     arrayPosition.first = 9 - yPos ; // The row
     arrayPosition.second = 10 + xPos; // The column
 
-    return arrayPosition; // Returns the 2D vector indices of the given x,y coordinate
+    /* Returns the 2D vector indices of the given x,y coordinate */
+    return arrayPosition; 
 }
 \end{lstlisting}
 % picture here?
 \subsection{Movement}
+% update index on robot move to keep current 
 % discuss booleans
-\section{Navigation}
+\section{Navigation and Localisation}
+% pp.GetX() 
 \section{Reactive and Deliberative Pathfinding}
+Robots can be broadly classified into three categories:
+
+\begin{arrowlist}
+    \item{Reactive}
+    \item{Deliberative}
+    \item{Hybrid}
+\end{arrowlist}
+When designing this software it was important to consider the advantages and disadvantages of these approaches. 
+
+Reactive robotics is based on a direct mapping between sensors and output and focuses on being fast and uncomplicated. This approach may provide similar results in the simulator as it does on the real robot because it does not require an internal representation of the environment, it reacts to obstacles as they appear.
+
+The way to perform this sort of reactive pathing on the \textit{Pioneer} is through the use of sonars.
+
+Deliberative robotics uses planning and constructs an internal representation of the environment which can be manipulated internally before the robot moves. The typical way a deliberative pathfinder works would be to look ahead using AI search techniques (commonly \textit{A*} or \textit{Best First} Search) and calculate the route needed to get from the start position to the goal position without colliding with any obstacles.
+
+This approach is ideal when obstacles are static and the movement is not time-critical, allowing time for calculating an ideal route. As obstacles on the provided occupancy grid do not move, this navigation method could prove very effective. There is also potential for the search to be more dynamic by recalculating the path should the robot be moved or come near obstacles.
+
+Representation could prove troublesome because the robot will have to represent positions, obstacles and so forth as abstractions. This is in contrast to the reactive approach which uses the "world as its own best model" approach. Another potential difficulty is the need to keep the internal model synchronised with the robots movements in the simulated or real environment.
+
+Hybrid robotics would involve a combination of both navigational techniques. This would appear to be ideal and would involve constructing a map using sonar data as a dynamic input.
 \subsection{Sonar}
+\begin{wrapfigure}{r}{0.5\textwidth}
+    \begin{center}
+            \includegraphics[width=0.47\textwidth]{images/sonars_wiki_dcs_aber_ac_uk.png}
+            \caption{Layout of sonars on the \textit{Pioneer} \cite{sonardiagram}}
+            \end{center}
+        \end{wrapfigure}
+
+The \textit{Pioneer} robot has an array of between eight and sixteen sonars which allow for obstacle detection.
+
+These are potentially more effective in the simulator as they are not at risk of cross-talk or environmental factors. 
+
+If two sonar equipped robots are near each other then their sonar readings could be responding to the sonar outputs from the other robots and cause issues.
+
+It is also possible that sonars in a simulated environment will prove more effective than those in a real environment.
+
+Sonars are easy to use in the provided C++ API via a \texttt{RangerProxy} or \texttt{SonarProxy} for simulation or real environments respectively. 
+
+Sonars are indexed from $0-15$ and can be accessed using standard array notation.
+
+\lstset{caption={Example Sonar Handling}, mathescape=true}
+\begin{lstlisting}
+if (rp[3] < 1 || rp[4] < 1) // An object is detected in front of the robot
+{
+    pp.SetSpeed(-0.700, dtor(60)); // Move backwards whilst turning $60^\circ$
+    usleep(300000); // Hold movement for 3 seconds
+} 
+\end{lstlisting}
 \subsection{Graph Search}
-\section{Design}
-This is design, not error handling.
-\subsection{Error Handling}
-This is error handling.
+% A* algorithm, path cost - adjacency checks, travelling back up the nodes, 'replaying' correct commands
 \section{Development}
+% basic intro
 \subsection{Early Ideas}
+% fully reactive, looking into GoTo - issues, discovered usleep() - BFS
 \subsection{Final Implementation}
-\subsection{Future Improvements} % Slightly buggy, more testing, sometimes stops before goal state - if input == currentPos then crash
+% BFS became Be-Fi-Se became A* when realised that needed path cost to stop it 'hugging' obstacles - had to implement path cost, then had to add checks for both diagonal and etc in isAdjacentToObstacle()
 \section{Testing}
+% few screenshots here 
 \section{Real Robots}
+% ignored goto, picture of pioneer here
 \section{Conclusions}
-\subsection{Evaluation}
+% sim nowhere near like real life, importance of sleep statements
+\subsection{Evaluation} % Slightly buggy, more testing, sometimes stops before goal state - if input == currentPos then crash
 \section{References}
 
 %\begin{wrapfigure}{r}{0.5\textwidth}
