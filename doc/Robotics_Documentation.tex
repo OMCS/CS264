@@ -81,10 +81,10 @@ My implementation focused on the following aspects:
 
 \begin{arrowlist}
     \item{Navigating a simulated grid}
-    \item{Searching for an efficient path using data in memory}
+    \item{Searching for an efficient path using stored data as a reference}
     \item{Planning and navigating a given route}
-    \item{Versatility in start positions, robot will recalculate its path regularly}
-    \item{Environmental awareness of obstacles including disallowing illegal goal positions}
+    \item{Versatility in start positions, the robot will recalculate its path regularly}
+    \item{Environmental awareness of obstacles, including disallowing illegal goal positions}
 \end{arrowlist}
 
 In addition to this, this program was tested on a real robot and results observed. The pathfinding implementation is deliberative as opposed to reactive - my justification for this is that sonars are unnecessary when a full map of the environment has already been achieved. I familiarised myself with both approaches during the design phase.
