@@ -120,19 +120,23 @@
 \pagenumbering{arabic} % Resets numbering
 
 \section{Introduction}
-The purpose of this assignment was to implement a simulated robot to navigate an occupancy grid and then to investigate the differences when this program was used on a real \textit{Pioneer} robot. This involved several aspects including navigation, pathfinding, precision movement, navigation and representation of the (simulated or real) environment using appropriate data structures. 
+The purpose of this assignment was to implement a simulated robot to navigate an occupancy grid and then to investigate the differences when this program was used on a real \textit{Pioneer} robot. 
+
+This involved several aspects including navigation, pathfinding, precision movement, navigation and representation of the (simulated or real) environment using appropriate data structures. 
 
 My implementation focused on the following aspects:
 
 \begin{itemize}
-    \item{Navigating a simulated grid}
-    \item{Searching for an efficient path using stored data as a reference}
+    \item{Navigating a simulated occupancy grid}
+    \item{Searching for an efficient path using map data as a reference}
     \item{Planning and navigating a given route}
-    \item{Versatility in start positions, the robot will recalculate its path regularly}
+    \item{Versatility in start positions, with the robot regularly recalculating its route}
     \item{Environmental awareness of obstacles, including disallowing illegal goal positions}
 \end{itemize}
 
-In addition to this, this program was tested on a real robot and results observed. The pathfinding implementation is deliberative as opposed to reactive - my justification for this is that sonars are unnecessary when a full map of the environment has already been achieved. I familiarised myself with both approaches during the design phase.
+In addition to this, this program was tested on a real robot and results observed. 
+
+The pathfinding implementation is deliberative as opposed to reactive - my justification for this is that sonars are unnecessary when a full map of the environment is available. However, I familiarised myself with both approaches during the design phase.
 
 Throughout the project, source control was used - both for backup purposes and to provide a record of progress made during the development of my solution.
 
@@ -150,19 +154,21 @@ Throughout the project, source control was used - both for backup purposes and t
             \caption{\textit{Player/Stage} Running}
     \end{center}
 \end{wrapfigure}
-\textit{Player/Stage} is a robotics simulation platform - it combines a simulator (\textit{Stage}) with a client \textit{Player} for use with programming robots. \textit{Player/Stage} makes use of a TCP based architecture \cite{pstcp} and is therefore network aware. With minor changes, the same code used in the simulator can be executed on a real robot.
+\textit{Player/Stage} is a robotics simulation platform - it combines a simulator (\textit{Stage}) with a client (\textit{Player}) for use when programming robots. 
 
-\textit{Player/Stage} proved difficult to install even on the recommended platform (32-bit Linux) and was prone to crashes and graphical glitches (e.g. grid axis disappearing). I installed it from source on Mac OS X and it was similarly unreliable. Additionally, there was not much documentation provided and the Java API seemed to have a number of bugs. 
+\textit{Player/Stage} makes use of a TCP based architecture \cite{pstcp} and is therefore network aware. The same code used in the simulator can be executed on a real robot with minor changes, although it may work differently or not at all.
 
-For this reason, as well as personal preference, C++ was used to implement my navigation system.
+\textit{Player/Stage} proved difficult to install even on the recommended platform (32-bit Linux) and was prone to crashes and graphical glitches such as axes labels disappearing. I installed it from source on \textit{Mac OS X} and it was similarly unreliable. Additionally, there was not much documentation provided and the Java API seemed to have a number of bugs. 
+
+For this reason; as well as personal preference, C\textit{++} was used to implement my navigation system.
 \section{Representation}
-The first step to solving the issue of navigating the grid was to determine how best to represent states within the program. I decided to use a \texttt{grid} class to represent the occupancy grid and there was also a need for a node class to store potential states for use in a graph search. 
+The first step to solving the issue of navigating the grid was to determine how best to represent states within the program. I decided to use a \textbf{Grid} class to represent the occupancy grid. There was also a need for a \textbf{Node} class to store potential states for use in a graph search. 
 \subsection{Grid Class}
-The \textbf{Grid} class provides key functionality. It stores the occupancy grid and provides several auxiliary functions to detect obstacles as well as the critically important \texttt{mapToGridArray} function which converts between $x,y$ coordinates and indices in a two-dimensional \textit{vector} of type \textit{int} values. 
+The \textbf{Grid} class provides key functionality. It stores the occupancy grid and provides several useful functions to detect obstacles as well as the critically important \texttt{mapToGridArray} function, which converts between $x,y$ coordinates and indices in a two-dimensional \textit{vector} of \textit{int} values. 
 
-This function is crucial and is used throughout the program whenever a conversion is needed between apparent position on the screen and the internal grid. This will be discussed in more detail in a later section.
+This function is crucial, it is used throughout the program whenever a conversion is needed between apparent position on the screen and the internal representation of the environment. This will be discussed further in a later section.
 \subsection{Node Class}
-The \textbf{Node} class provides all the required functionality to describe a state during navigation. The following table describes the attributes stored in a node object.
+The \textbf{Node} class provides all the required functionality to describe a state during navigation. The following table describes the attributes stored in a \textit{Node} object.
 \begin{table}[h!]
 \scriptsize
 \begin{tabular}{|c|c|l|}
@@ -177,13 +183,13 @@ The \textbf{Node} class provides all the required functionality to describe a st
     \hline
     gridState & \texttt{Grid} & Instance of a \texttt{Grid},  the current grid state in its entirety\\
     \hline
-    pathCost & \texttt{int} & Current path cost, for positions not adjacent to obstacles this will be \texttt{parentNode->getPathCost() + 1} \\
+    pathCost & \texttt{int} & Current path cost, for positions \textit{not} adjacent to obstacles this will be \texttt{parentNode->getPathCost() + 1} \\
     \hline
     xPos & \texttt{int} & Current \textbf{x} coordinate of robot on grid, one part of uniquely identifying a \texttt{Node} \\
     \hline
     yPos & \texttt{int} & Current \textbf{y} coordinate of robot on grid, second part of unique identifier\\
     \hline
-    moveDir & \texttt{Direction} & Instance of the \texttt{Direction} enumerated value - see section on movement\\
+    moveDir & \texttt{Direction} & Instance of the \texttt{Direction} enumerated value - see section on graph search \\
     \hline
 \end{tabular}
 \normalsize
@@ -238,9 +244,9 @@ std::pair<int,int> Grid::mapToGridArray(int xPos, int yPos)
 \section{Localisation}
 Localisation is an important part of robotic navigation, a robot needs to know its current position before it can plan to go anywhere else. The \textit{PositionProxy} class from the API provides several functions to get the current location such as \texttt{GetXPos}. Using these it is possible to obtain the location of the robot.
 
-For higher precision, a \textit{double} can be returned from these functions, otherwise this can be truncated to an integer. It is important to update the odometry so that the position of the robot is accurate \textit{before} a path is calculated, or this will lead to errors. 
+For higher precision, a \textit{double} can be returned from these functions, otherwise this can be cast to an integer. It is important to update the odometry so that the position of the robot is accurate \textit{before} a path is calculated, or this will lead to errors. 
 
-Reading this data is done by using the \texttt{Read()} function provided in the \textit{PlayerClient} class. This should be called regularly to assist with navigation.
+Reading this data is done by using the \texttt{Read} function provided in the \textit{PlayerClient} class. This should be called regularly to assist with navigation.
 
 The caveat is that the values returned will be estimated at best on a real robot and further calculations will be required to determine how far the robot has moved and its current location.
 
@@ -255,7 +261,7 @@ Robots can be broadly classified into three categories:
     \item{Deliberative}
     \item{Hybrid}
 \end{itemize}
-When designing this software it was important to consider the advantages and disadvantages of these approaches. 
+When designing this software it was important to consider the advantages and disadvantages of each of these approaches. 
 
 Reactive robotics is based on a direct mapping between sensors and output and focuses on being fast and uncomplicated. This approach may provide similar results in the simulator as it does on the real robot because it does not require an internal representation of the environment, it reacts to obstacles as they appear.
 
@@ -282,8 +288,6 @@ These are potentially more effective in the simulator as they are not at risk of
 
 If two sonar equipped robots are near each other then their sonar readings could be responding to the sonar outputs from the other robots and cause issues.
 
-It is also possible that sonars in a simulated environment will prove more effective than those in a real environment.
-
 Sonars are easy to use in the provided C++ API via a \texttt{RangerProxy} or \texttt{SonarProxy} for simulation or real environments respectively. 
 
 Sonars are indexed from $0-15$ and can be accessed using standard array notation.
@@ -307,7 +311,7 @@ As mentioned in the previous section, a graph search is an effective navigation 
     \item{Solution}
 \end{itemize}
 
-The state space for the occupancy grid is every potential legal position the robot could occupy. The initial state is the hard-coded occupancy grid, the goal state is defined by the user.
+The state space for the occupancy grid is every potential (legal) position the robot could occupy. The initial state is the hard-coded occupancy grid and the goal state is defined by the user.
 \begin{wrapfigure}{l}{0.5\textwidth}
     \begin{center}
             \includegraphics[width=0.47\textwidth]{images/Path_Cost_Grid.png}
@@ -315,31 +319,28 @@ The state space for the occupancy grid is every potential legal position the rob
     \end{center}
 \end{wrapfigure}
 
-The successor function in this case creates new nodes with a pre-determined direction of movement (Up, Down, Left, Right) and sets variables for these nodes (e.g. current path cost, current grid state) accordingly.Operators for changing state can be surmised as moving in one of the four directions. 
+The successor function creates new nodes with a direction of movement (Up, Down, Left, Right) and sets variables for these nodes (e.g. current path cost, current grid state) accordingly. Operators for changing state can be surmised as moving in one of the four directions from the current position. 
 
-Restrictions are implemented in an \textit{A*} search with path cost and in all searches by only allowing legal positions for successor nodes. There are several functions related to checking for legal moves. These can also be used for input validation.
+Restrictions are implemented in an \textit{A*} search with path cost and in all searches by only allowing legal positions for successor nodes. There are several functions related to checking for legal moves which can also be used for input validation.
 
-The \textit{Grid} class has three functions of interest for this: \texttt{canMove}, \texttt{isObstacle} and \texttt{adjacentToObstacle} - the first of these functions takes a grid coordinate, converts it to an index value and then returns true if either the robot or an obstacle are occupying that index.
+The \textit{Grid} class has three related functions these are \texttt{canMove}, \texttt{isObstacle} and \texttt{adjacentToObstacle} - the first of these functions takes a grid coordinate, converts it to an index value and then returns true if either the robot or an obstacle are occupying that position.
 
-\texttt{adjacentToObstacle} checks a given grid coordinate and returns true if it is adjacent to an obstacle in any direction. In order to have the search prioritise non-adjacent positions (to prevent getting too close to obstacles) these are given a higher path cost. This prevents the robot visiting these positions unless they are a goal position.
+\texttt{adjacentToObstacle} checks a given grid coordinate and returns true if it is adjacent to an obstacle in any direction. In order to have the search prioritise non-adjacent positions (to prevent getting too close to obstacles) these are given a higher path cost. This 'dissuades' the robot visiting these positions unless one of them is a goal position.
 
 \lstset{caption={\texttt{adjacentToObstacle} function, checks in eight directions}}
 \begin{lstlisting}
 bool Grid::adjacentToObstacle(int xPos, int yPos)
 {
-    if (xPos == GRID_MIN_X || xPos == GRID_MAX_X || yPos == GRID_MIN_Y || yPos == GRID_MAX_Y) // Edge of grid counts as obstacle
-    {
+    if (xPos == GRID_MIN_X || xPos == GRID_MAX_X || yPos == GRID_MIN_Y || yPos == GRID_MAX_Y) { // Edge of grid counts as obstacle
         return true;
     }
 
-    if (isObstacle(xPos + 1, yPos) || isObstacle(xPos - 1, yPos) || isObstacle(xPos, yPos + 1) || isObstacle(xPos, yPos - 1))
-    {
+    if (isObstacle(xPos + 1, yPos) || isObstacle(xPos - 1, yPos) || isObstacle(xPos, yPos + 1) || isObstacle(xPos, yPos - 1)) {
         return true;
     }
 
     /* Check diagonally for obstacles */
-    if (isObstacle(xPos +1, yPos + 1) || isObstacle(xPos -1, yPos - 1) || isObstacle (xPos - 1, yPos + 1) || isObstacle(xPos + 1, yPos - 1))
-    {
+    if (isObstacle(xPos +1, yPos + 1) || isObstacle(xPos -1, yPos - 1) || isObstacle (xPos - 1, yPos + 1) || isObstacle(xPos + 1, yPos - 1)) {
         return true;
     }
 
@@ -349,17 +350,19 @@ bool Grid::adjacentToObstacle(int xPos, int yPos)
 
 The solution is presented as a sequence of coordinates to travel along, these can be 'replayed' by the robot by reversing the path from the goal node to the root node, allowing it to move along the calculated path.
 \section{Development}
-Over the course of development, my ideas changed quite significantly and the final software was a lot different to the original version. This is unsurprising and proved useful in terms of seeing how my ideas had developed. In the following two sections I discuss alternatives I tried and the process of developing the final software implementation.
+Over the course of development, my ideas changed quite significantly and the final software was a lot different to the original version. This is unsurprising and proved useful in terms of seeing how my ideas had developed. 
+
+In the following two sections I discuss alternatives I tried and the process of developing the final software implementation.
 \subsection{Early Ideas}
 Early on in the development process I looked at using a very crude reactive approach by simply having the robot check sonars and randomly move about the environment. This was effective but did not involve any intelligent motion or significant robotics knowledge. 
 
 I discovered that the \textit{Player/Stage} API provided a \texttt{GoTo} function as a member of the \texttt{PositionProxy} class. This function would allow me to input a position using the \texttt{player2d\_pose\_t} type (a simple pair like structure) and from there the robot would navigate to this position on the grid.
 
-This seemed like a very simple solution - avoid obstacles with the sonar and move towards the goal position. After running some tests I concluded that the \texttt{GoTo} function was not intelligent and would simply move to the position in a straight line. I also discovered that commands sent to the robot are executed until a new command is received.
+This seemed like a very simple solution - avoid obstacles with the sonar and move towards the goal position. After running some tests I concluded that the \texttt{GoTo} function was not intelligent and would simply move to the position in a straight line. I also discovered that movement commands sent to the robot are executed continually until a new command is received.
 
 What this meant was that I would have to repeatedly send \texttt{GoTo} commands and pause for the sonar data to be read, very inelegant. Because there was no intelligence the robot would often come too close to obstacles and get stuck when trying to turn or become caught in a loop where it moved towards an obstacle, backed away and moved towards it again.
 
-It was clear I would need to try a different approach. I discovered that the \texttt{usleep} function provided in \textit{cstdlib} would allow commands sent to the robot to be carried out for a length of time before the new command was sent - this seemed useful but did not prevent issues where a robot would move towards an obstacle, and be asleep while the sonar should have been picking up new data and sending an avoidance command.
+It was clear I would need to try a different approach. I discovered that the \texttt{usleep} function provided in \textit{cstdlib} would allow commands sent to the robot to be carried out for a length of time before the new command was sent - this seemed useful but did not prevent issues where a robot would move towards an obstacle, and be sleeping whilst the sonar should have been picking up new data and sending an avoidance command.
 
 This could have been fixed by implementing some sort of threading capability or using an interrupt but continuing on this path seemed less about intelligent robotics and more about exploiting C\texttt{++} features, so I decided to drop the idea of a reactive system and try a deliberative one.
 
@@ -389,7 +392,7 @@ I had some initial difficulty because I didn't realise I needed to use pointers 
 
 This worked well and I decided to continue with the deliberative approach, however the breadth-first search proved extremely slow when calculating positions that were further away from the robot than the local quadrant.
 \subsection{Final Implementation}
-To solve the problem of breadth-first search being too slow, I added a heuristic and modified it into a best-first search. This greatly improved the performance, although I ran into issues with some coordinates because my check to see if a node was already in the explored list was failing, again an issue with pointers. I created the following function to dereference the pointers and check the values of the two variables that held position data.
+To solve the problem of breadth-first search being too slow, I added a heuristic and modified it into a best-first search. This greatly improved the performance, although I ran into issues with some coordinates because my check to see if a node was already in the explored list was failing, again an issue with pointers. I created the following function to dereference the pointers and check the values of the two variables that held position data. Before I did this the search was getting stuck in an infinite loop.
 
 \lstset{caption={Check if node has already been explored}}
 \begin{lstlisting}
@@ -407,11 +410,11 @@ bool nodeExplored(Node* successorNode)
 }
 \end{lstlisting}
 
-This solved the issue with some coordinates not working but I then had the issue of the robot hitting obstacles regularly. This was because it would move to tiles directly adjacent to obstacles and then when turning would collide with the obstacle. 
+This solved the issue with some goal positions not working but I then had the issue of the robot hitting obstacles regularly. This was because it would move to positions directly adjacent to obstacles, then collide with the obstacles when turning. 
 
-In order to stop this from happening I had to implement a path cost system (as explained in section 5.2) to give those grid cells lower priority unless one of them was a goal state. The key component of the path cost calculations are whether or not a cell is next to an obstacle (in any of eight directions),
+In order to stop this from happening I had to implement a path cost system (as explained in section 5.2) to give those positions lower priority unless one of them was a goal state. The key component of the path cost calculations are whether or not a cell is next to an obstacle (in any of eight directions),
 
-An \textit{A*} search is based on a \textit{priority queue} data structure which allows for certain data items to be evaluated first. My comparator for the queue is as follows:
+An \textit{A*} search is based on a \textit{priority queue} data structure which allows for the most desirable nodes to be evaluated first. My comparator for the priority queue used in my program is as follows:
 
 \lstset{caption={Priority Queue Comparator}}
 \begin{lstlisting}
@@ -430,12 +433,16 @@ struct findBestNode : public std::binary_function<Node*, Node*, bool>
 };
 \end{lstlisting}
 
-Goal state checking was another consideration, I had to lower the precision on the \texttt{isGoal} function because the robot would try to move directly to the outer edge of the grid cell and could then hit an obstacle - it now stops a safe distance the goal.
+\textit{A*} search was the only algorithm which worked successfully. For optimal navigation both a path cost and a heuristic are required so breadth-first and best-first search proved inadequate.
+
+Another consideration was the function to check if a goal state had been reached. I realised I had to lower the precision on the \texttt{isGoal} function because the robot would try to move directly to the outer edge of the requested grid cell and could then hit an obstacle. It now stops closer to the centre of the cell at the goal position.
 
 \section{Testing}
-When testing this software, I attempted to try a variety of different start and end positions. I tested moving the robot during pathing and found that it recalculated the path correctly. As well as this I tested obstacle avoidance and pathfinding for several different areas of the grid and received generally positive results.
+When testing this software, I attempted to try a variety of different start and end positions. I tested moving the robot whilst it was navigating and found that it recalculated the path to the goal correctly. 
 
-Below is a short test table of the test conducted, expected results and actual results.
+As well as this,  I tested obstacle avoidance and pathfinding for several different areas of the grid and received generally positive results.
+
+Below is a short test table of the test conducted, any input given and the expected result.
 \begin{table}[ht!]
 \scriptsize
     \begin{tabular}{|l|c|l|l|}
@@ -474,7 +481,7 @@ From these results, I was able to draw several conclusions about how effective t
     \item{The robot moves to the destination successfully in most cases}
     \item{Occasionally the robot will bump into an obstacle and then correct its course}
     \item{One time out of eight test runs the robot hit an obstacle and was not able to correct its course}
-    \item{If a robot is moved during the process of navigation it can successfully renegotiate a path - localisation works well}
+    \item{If a robot is moved during the process of navigation it can successfully renegotiate a path. Localisation works well}
     \item{The robot is able to recognise goal states and stop with high reliability}
     \item{Occasionally the robot will reach the goal state and player will crash with an uncaught exception of type \texttt{PlayerCc::PlayerError}. This is not reproducible}
     \item{The robot occasionally hesitates when running the simulation at normal speed if the goal is a node with lower path cost (i.e. adjacent to an obstacle)}
@@ -489,7 +496,23 @@ Testing indicates that the software generally works well, with potential calibra
     \caption{Pioneer Robot in the Intelligent Systems Laboratory (\textit{ISL})}
 \end{center}
 \end{figure}
-% TODO: Finish this section, mentioning test data
+One of the most important parts of this assignment was to try the software on an actual \textit{Pioneer}. As my final implementation was heavily deliberative and the lab environment did not match the provided occupancy grid, I was expecting undefined behaviour. Because I did not make use of the sonars in my final implementation - any behaviour would be avoiding obstacles by chance.
+
+In order to use the sonars I would need to create a local map using provided sonar data. This would not be too difficult as the functionality for setting and creating maps has already been implemented.
+
+I conducted two trials in the lab, the first was a run of my software with no modifications other than changing the \texttt{RangerProxy} to a \texttt{SonarProxy} as required. When executed, my software reacted normally until I had entered start and goal positions and then the robot proceeded to sit without moving. 
+
+On further investigation it appeared that the GoTo command I had based my solution on was not being executed by the robot. The command window stated that path planning was taking place but the robot was immobile. I experimented by manually setting the speed but it was clear that the software would need non-trivial adaptation to use on a real robot. Conceptually the navigation would work but it would be more difficult to ascertain positions, distances and so forth.
+
+The second trial involved running some simple sonar avoidance code to investigate how the robot moved. The main differences in terms of the real robot were as follows:
+
+\begin{itemize}
+    \item{Movement is a lot less precise in the simulator. Robots require a turn radius of about $1.5\times$ their length which is less apparent in the simulator }
+    \item{\texttt{GoTo} commands mean nothing to an actual robot}
+    \item{Real robots take longer to execute commands in general, this would have to be accounted for in a real robotic solution}
+    \item{Real robots must respect the laws of physics and their movement parameters such as speed and turn-rate need to be carefully adjusted}
+\end{itemize}
+
 \section{Conclusions}
 Overall this project proved quite challenging because applying AI techniques to the environment is not as 'clean' as it is when dealing with a structure that exists only in memory. 
 
@@ -501,17 +524,20 @@ The software would need modifications to work correctly on a real robot, however
 
 There are a few bugs in my implementation but nothing which detracts from the ability to navigate the occupancy grid successfully. As mentioned in the previous section, the robot will sometimes stop just short of the goal with a \texttt{PlayrCc::PlayerError} exception - I have not ascertained whether this is a bug with my software or something else as the same error is thrown when the software cannot connect to the server.
 
-Additionally, as soon as the \texttt{PositionProxy} object is instantiated, the \textbf{simulated} robot will begin to move. In order to make it wait for input. I don't instantiate it until after the user has input the goal coordinates. 
+Additionally, as soon as the \texttt{PositionProxy} object is instantiated, the \textbf{simulated} robot will begin to move. In order to make the robot wait for input I don't instantiate the \texttt{PositionProxy} until after the user has input the goal coordinates. 
 
-This causes a crash if the goal coordinates equal the start coordinates with no way of checking because \texttt{getXPos()} and so forth are not available yet. 
+This causes a crash if the coordinates input by the user are the same as the robot's current coordinates, there is no way of checking because \texttt{getXPos} and related functions are not available yet. 
 
 To make the robot wait for input before moving, I could send commands to make the robot move in a tight circle - effectively immobilising it. However the real robot does not exhibit this problem due to \texttt{setMotorEnable(false)} being called so it is not a serious issue.
 
 It has been a valuable learning experience and I now have a much better understanding of robotic navigation and related concepts.
-\section{References}
-% TODO: References
-%[1] \textit{} [Online]. Available:\\ 
-%    \url{}
+\begin{thebibliography}{10}
+    \bibitem{sonardiagram}
+    Aberystwyth University DCS. \textit{"Pioneer Robot Sonar Diagram"}, wiki.dcs.aber.ac.uk. [Online]. Available:\\ \url{http://wiki.dcs.aber.ac.uk/doku.php?id=robotics:pioneer_information} [Accessed: Mar. 21 2014].
+
+    \bibitem{pstcp}
+    Sourceforge. \textit{"Player/Stage"}, playerstage.sourceforge.net [Online]. Available:\\ \url{http://playerstage.sourceforge.net/player/player.html} [Accessed: Mar. 22 2014].
+    \end{thebibliography}
 
 \end{document}
 
