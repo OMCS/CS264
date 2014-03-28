@@ -147,7 +147,7 @@ Throughout the project, source control was used - both for backup purposes and t
 \begin{wrapfigure}{r}{0.6\textwidth}
     \begin{center}
             \includegraphics[width=0.6\textwidth]{images/Start_GUI.png}
-            \caption{\textit{Player/Stage Running}}
+            \caption{\textit{Player/Stage} Running}
     \end{center}
 \end{wrapfigure}
 \textit{Player/Stage} is a robotics simulation platform - it combines a simulator (\textit{Stage}) with a client \textit{Player} for use with programming robots. \textit{Player/Stage} makes use of a TCP based architecture \cite{pstcp} and is therefore network aware. With minor changes, the same code used in the simulator can be executed on a real robot.
@@ -431,10 +431,57 @@ struct findBestNode : public std::binary_function<Node*, Node*, bool>
 \end{lstlisting}
 
 Goal state checking was another consideration, I had to lower the precision on the \texttt{isGoal} function because the robot would try to move directly to the outer edge of the grid cell and could then hit an obstacle - it now stops a safe distance the goal.
+
 \section{Testing}
-For testing, I attempted to try a variety of different start and end positions. 
-% TODO: few screenshots here, show printing out path, etc.
+When testing this software, I attempted to try a variety of different start and end positions. I tested moving the robot during pathing and found that it recalculated the path correctly. As well as this I tested obstacle avoidance and pathfinding for several different areas of the grid and received generally positive results.
+
+Below is a short test table of the test conducted, expected results and actual results.
+\begin{table}[ht!]
+\scriptsize
+    \begin{tabular}{|l|c|l|l|}
+        \hline
+        \multicolumn{1}{|c|}{\textbf{Test Description}} & \multicolumn{1}{c|}{\textbf{Input}}& \multicolumn{1}{c|}{\textbf{Expected Result}} & \multicolumn{1}{c|}{\textbf{Result}} \\
+        \hline
+        Input coordinate(s) off grid & -12,4 & Output error message and ask user to re-input & PASS\\
+        \hline
+        Illegal coordinate(s) are obstacles & 5,-1 & Program will output error message and ask user to re-input & PASS\\
+        \hline
+        Move from start to goal in same quadrant & A: 9,9 B: 4,4 & Robot will reach \textit{B} successfully without hitting obstacles & PASS\\
+        \hline
+        Move from start to goal in different quadrant & A: -8,-8 B: 4,-3 & Same as above & PASS$^*$\\
+        \hline
+        Drag robot whilst moving to position & N/A & Robot will recalculate path, displayed in terminal & PASS\\
+        \hline
+        Goal recognition & Goal position & Robot will stop when approaching goal state & PASS$^*$\\
+        \hline
+    \end{tabular}
+    \\
+$^*$ Navigation to different quadrants and goal recognition occasionally display issues, see overleaf.
+\normalsize
+\end{table}
+
 \newpage
+    \begin{figure}
+        \begin{center}
+            \includegraphics[scale=0.6]{images/Testing_CLI.png}
+            \caption{Command line output when moving the robot from \textbf{4,-3} to \textbf{4,4}}
+        \end{center}
+\end{figure}
+
+From these results, I was able to draw several conclusions about how effective the software is at navigating the occupancy grid:
+
+\begin{enumerate}
+    \item{The robot moves to the destination successfully in most cases}
+    \item{Occasionally the robot will bump into an obstacle and then correct its course}
+    \item{One time out of eight test runs the robot hit an obstacle and was not able to correct its course}
+    \item{If a robot is moved during the process of navigation it can successfully renegotiate a path - localisation works well}
+    \item{The robot is able to recognise goal states and stop with high reliability}
+    \item{Occasionally the robot will reach the goal state and player will crash with an uncaught exception of type \texttt{PlayerCc::PlayerError}. This is not reproducible}
+    \item{The robot occasionally hesitates when running the simulation at normal speed if the goal is a node with lower path cost (i.e. adjacent to an obstacle)}
+\end{enumerate}
+
+Testing indicates that the software generally works well, with potential calibration needed in terms of path cost and further obstacle avoidance. In most test cases; the robot was able to navigate the occupancy grid without issue, so the testing was a success overall. The testing also highlighted some apparent deficiencies in \textit{Player/Stage}.
+
 \section{Real Robots}
 \begin{figure}[h!]
 \begin{center}
@@ -452,7 +499,7 @@ It was interesting how the architecture of the robot differed from a traditional
 
 The software would need modifications to work correctly on a real robot, however the framework for path planning is complete and works well. In order for the robot to navigate arbitrary environments there would need to be a way to convert sonar data into an internal map as well as measure position and speed in a reliable way. 
 
-There are a few bugs in my implementation but nothing which detracts from the ability to navigate the occupancy grid successfully. Occasionally the robot will stop just short of the goal with a \texttt{PlayrCc::PlayerError} - I have not ascertained whether this is a bug with my software or something else as the same error is thrown when the software cannot connect to the server.
+There are a few bugs in my implementation but nothing which detracts from the ability to navigate the occupancy grid successfully. As mentioned in the previous section, the robot will sometimes stop just short of the goal with a \texttt{PlayrCc::PlayerError} exception - I have not ascertained whether this is a bug with my software or something else as the same error is thrown when the software cannot connect to the server.
 
 Additionally, as soon as the \texttt{PositionProxy} object is instantiated, the \textbf{simulated} robot will begin to move. In order to make it wait for input. I don't instantiate it until after the user has input the goal coordinates. 
 
@@ -462,7 +509,7 @@ To make the robot wait for input before moving, I could send commands to make th
 
 It has been a valuable learning experience and I now have a much better understanding of robotic navigation and related concepts.
 \section{References}
-
+% TODO: References
 %[1] \textit{} [Online]. Available:\\ 
 %    \url{}
 
