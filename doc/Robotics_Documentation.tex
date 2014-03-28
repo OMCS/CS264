@@ -144,9 +144,9 @@ Throughout the project, source control was used - both for backup purposes and t
 \normalsize
 \newpage
 \section{Player/Stage}
-\begin{wrapfigure}{r}{0.5\textwidth}
+\begin{wrapfigure}{r}{0.6\textwidth}
     \begin{center}
-            \includegraphics[width=0.5\textwidth]{images/Start_GUI.png}
+            \includegraphics[width=0.6\textwidth]{images/Start_GUI.png}
             \caption{\textit{Player/Stage Running}}
     \end{center}
 \end{wrapfigure}
@@ -359,26 +359,90 @@ This seemed like a very simple solution - avoid obstacles with the sonar and mov
 
 What this meant was that I would have to repeatedly send \texttt{GoTo} commands and pause for the sonar data to be read, very inelegant. Because there was no intelligence the robot would often come too close to obstacles and get stuck when trying to turn or become caught in a loop where it moved towards an obstacle, backed away and moved towards it again.
 
-It was clear I would need to try a different approach. I I discovered that the \texttt{usleep} function provided in \textit{cstdlib} would allow commands sent to the robot to be carried out for a length of time before the new command was sent - this seemed useful but did not prevent issues where a robot would move towards an obstacle, and be asleep while the sonar should have been picking up new data and sending an avoidance command.
+It was clear I would need to try a different approach. I discovered that the \texttt{usleep} function provided in \textit{cstdlib} would allow commands sent to the robot to be carried out for a length of time before the new command was sent - this seemed useful but did not prevent issues where a robot would move towards an obstacle, and be asleep while the sonar should have been picking up new data and sending an avoidance command.
 
 This could have been fixed by implementing some sort of threading capability or using an interrupt but continuing on this path seemed less about intelligent robotics and more about exploiting C\texttt{++} features, so I decided to drop the idea of a reactive system and try a deliberative one.
 
-I began by attempting to implement a simple Breadth-First Search which required the creation of a \textit{Node} class. I moved everything around in memory without sending commands to the robot yet in order to see if this was feasible. 
+I began by attempting to implement a simple breadth-first search which required the creation of a \textit{Node} class. I moved everything around in memory without sending commands to the robot yet in order to see if this was feasible. 
 
-This worked well and I decided to continue with the deliberative approach, however the breadth-first search proved extremely slow when calculating positions that were further away.
+I had some initial difficulty because I didn't realise I needed to use pointers to \textit{Node} objects rather than \textit{Node} objects themselves in my data structures. When I was storing \textit{Node} objects the \texttt{getParentNode} function was not working correctly. This is crucial for tree traversal, an example of which follows:
+
+\lstset{caption={Tree traversal example}}
+\begin{lstlisting}
+ for (Node* n : explored)
+    {
+        if (n->isGoalState(goalX, goalY)) // Found the node which represents the goal state
+        {
+            while (n->getParentNode() != NULL) // Traverse upwards until we reach the root node 
+            {
+                pathString.append(n->getMoveDirString()); // Append the direction to the output string
+                calculatedPath->push_back(n); // Add the node to the path the robot will take
+                n = n->getParentNode(); // Move one level back up the tree
+            }
+        }
+    }
+    std::reverse(pathString.begin(), pathString.end()); // Reverse the string so it displays start -> goal instead of vice-versa
+    std::cout << "\n\nPATH: " << pathString << std::endl;
+
+    std::reverse(calculatedPath->begin(), calculatedPath->end()); // Reverse vector storing the path in a similar mannner
+\end{lstlisting}
+
+This worked well and I decided to continue with the deliberative approach, however the breadth-first search proved extremely slow when calculating positions that were further away from the robot than the local quadrant.
 \subsection{Final Implementation}
+To solve the problem of breadth-first search being too slow, I added a heuristic and modified it into a best-first search. This greatly improved the performance, although I ran into issues with some coordinates because my check to see if a node was already in the explored list was failing, again an issue with pointers. I created the following function to dereference the pointers and check the values of the two variables that held position data.
 
-% TODO: BFS became Be-Fi-Se became A* when realised that needed path cost to stop it 'hugging' obstacles - had to implement path cost, then had to add checks for both diagonal and etc in isAdjacentToObstacle() because otherwise would just hit things. Also had to make isGoal slightly less precise because otherwise it would travel to the very edge of a grid cell and hit obstacles. 
+\lstset{caption={Check if node has already been explored}}
+\begin{lstlisting}
+bool nodeExplored(Node* successorNode)
+{
+    std::vector<Node*>::iterator it; // Create iterator for Node* container 
+
+    for ( it = explored.begin(); it != explored.end(); ++it)
+    {
+        if ( (*it)->getXPos() == successorNode->getXPos() && (*it)->getYPos() == successorNode->getYPos())
+        {
+            return true;
+        }
+    }
+}
+\end{lstlisting}
+
+This solved the issue with some coordinates not working but I then had the issue of the robot hitting obstacles regularly. This was because it would move to tiles directly adjacent to obstacles and then when turning would collide with the obstacle. 
+
+In order to stop this from happening I had to implement a path cost system (as explained in section 5.2) to give those grid cells lower priority unless one of them was a goal state. The key component of the path cost calculations are whether or not a cell is next to an obstacle (in any of eight directions),
+
+An \textit{A*} search is based on a \textit{priority queue} data structure which allows for certain data items to be evaluated first. My comparator for the queue is as follows:
+
+\lstset{caption={Priority Queue Comparator}}
+\begin{lstlisting}
+struct findBestNode : public std::binary_function<Node*, Node*, bool>
+{
+    bool operator() (const Node* firstNode, const Node* secondNode) const // Overload () operator
+    {
+        if (distanceFromGoal(firstNode->getXPos(),firstNode->getYPos()) + firstNode->getPathCost() < 
+                distanceFromGoal(secondNode->getXPos(), secondNode->getYPos()) + secondNode->getPathCost())
+        {
+            return false;
+        }
+
+        return true;
+    }
+};
+\end{lstlisting}
+
+Goal state checking was another consideration, I had to lower the precision on the \texttt{isGoal} function because the robot would try to move directly to the outer edge of the grid cell and could then hit an obstacle - it now stops a safe distance the goal.
 \section{Testing}
 For testing, I attempted to try a variety of different start and end positions. 
 % TODO: few screenshots here, show printing out path, etc.
+\newpage
 \section{Real Robots}
-\begin{figure}
+\begin{figure}[h!]
 \begin{center}
     \frame{\includegraphics[width=1\textwidth]{./images/Pioneer.jpg}}
     \caption{Pioneer Robot in the Intelligent Systems Laboratory (\textit{ISL})}
 \end{center}
 \end{figure}
+% TODO: Finish this section, mentioning test data
 \section{Conclusions}
 Overall this project proved quite challenging because applying AI techniques to the environment is not as 'clean' as it is when dealing with a structure that exists only in memory. 
 
