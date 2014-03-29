@@ -484,7 +484,7 @@ From these results, I was able to draw several conclusions about how effective t
     \item{If a robot is moved during the process of navigation it can successfully renegotiate a path. Localisation works well}
     \item{The robot is able to recognise goal states and stop with high reliability}
     \item{Occasionally the robot will reach the goal state and player will crash with an uncaught exception of type \texttt{PlayerCc::PlayerError}. This is not reproducible}
-    \item{The robot occasionally hesitates when running the simulation at normal speed if the goal is a node with lower path cost (i.e. adjacent to an obstacle)}
+    \item{The robot occasionally hesitates when running the simulation at normal speed if the goal is a node with a higher path cost (i.e. adjacent to an obstacle)}
 \end{enumerate}
 
 Testing indicates that the software generally works well, with potential calibration needed in terms of path cost and further obstacle avoidance. In most test cases; the robot was able to navigate the occupancy grid without issue, so the testing was a success overall. The testing also highlighted some apparent deficiencies in \textit{Player/Stage}.
